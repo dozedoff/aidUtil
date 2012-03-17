@@ -1,0 +1,3 @@
+[submodule "aidUtil/common"]
+	path = aidUtil/common
+	url = git@github.com:dozedoff/common.git
