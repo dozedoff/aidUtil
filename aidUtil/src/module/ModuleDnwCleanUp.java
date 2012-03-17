@@ -34,33 +34,39 @@ JTextArea logArea;
 Thread worker;
 ConnectionPool cPool;
 ButtonGroup group;
-JRadioButton delete,report,move;
-JTextField movePath;
+JRadioButton delete,report,move; // radio buttons for selecting work mode
+JTextField movePath; // path where files should be moved to
 
 	@Override
 	public void optionPanel(Container container) {
+		// create buttons
 		delete = new JRadioButton("Delete");
 		report = new JRadioButton("Report");
 		move = new JRadioButton("Move");
 		
+		// group buttons
 		group = new ButtonGroup();
 		group.add(delete);
 		group.add(report);
 		group.add(move);
 		
+		// create separate panel and add buttons
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.add(delete);
 		buttonPanel.add(report);
 		buttonPanel.add(move);
 		
+		// add action listeners
 		delete.addActionListener(this);
 		report.addActionListener(this);
 		move.addActionListener(this);
 		
+		// set up text field for target folder
 		movePath = new JTextField(20);
 		movePath.setEnabled(false);
 		movePath.setToolTipText("Path where files should be moved to");
 		
+		// add all components to the option panel
 		container.add(movePath);
 		container.add(buttonPanel);
 	}
@@ -88,6 +94,7 @@ JTextField movePath;
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		// textfield is only used in move mode
 		if(e.getSource() == move){
 			movePath.setEnabled(true);
 		}else{
