@@ -24,9 +24,32 @@ import java.awt.Container;
 import javax.swing.JTextArea;
 
 public interface MaintenanceModule {
+	/**
+	 * Specify a container where modules can add additional components
+	 * to allow more settings.
+	 * @param container container where components should be added
+	 */
 	public void optionPanel(Container container);
+	
+	/**
+	 * Start the module. All parameters must be validated.
+	 */
 	public void start();
+	
+	/**
+	 * Abort the modules operation.
+	 */
 	public void Cancel();
+	
+	/**
+	 * Specify a textarea where modules can output information for the user.
+	 * @param logArea for displaying information to the user
+	 */
 	public void setLog(JTextArea logArea);
+	
+	/**
+	 * Specify a connection pool for database operations.
+	 * @param pool to be used for database communication
+	 */
 	public void setConnectionPool(ConnectionPool pool);
 }
