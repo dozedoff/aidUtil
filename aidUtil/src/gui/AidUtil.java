@@ -75,6 +75,7 @@ public class AidUtil extends JFrame implements ActionListener{
 		
 		controlPanel = new JPanel();
 		controlPanel.add(targetPath = new JTextField(30));
+		targetPath.setToolTipText("Folder to process");
 		
 		add(controlPanel, BorderLayout.NORTH);
 		add(optionPanel = new JPanel(), BorderLayout.CENTER);

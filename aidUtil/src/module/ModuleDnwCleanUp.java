@@ -20,16 +20,49 @@ package module;
 import io.ConnectionPool;
 
 import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.ButtonGroup;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
-
-public class ModuleDnwCleanUp implements MaintenanceModule {
+public class ModuleDnwCleanUp implements MaintenanceModule, ActionListener {
+JTextArea logArea;
+Thread worker;
+ConnectionPool cPool;
+ButtonGroup group;
+JRadioButton delete,report,move;
+JTextField movePath;
 
 	@Override
 	public void optionPanel(Container container) {
-		// TODO Auto-generated method stub
-
+		delete = new JRadioButton("Delete");
+		report = new JRadioButton("Report");
+		move = new JRadioButton("Move");
+		
+		group = new ButtonGroup();
+		group.add(delete);
+		group.add(report);
+		group.add(move);
+		
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.add(delete);
+		buttonPanel.add(report);
+		buttonPanel.add(move);
+		
+		delete.addActionListener(this);
+		report.addActionListener(this);
+		move.addActionListener(this);
+		
+		movePath = new JTextField(20);
+		movePath.setEnabled(false);
+		movePath.setToolTipText("Path where files should be moved to");
+		
+		container.add(movePath);
+		container.add(buttonPanel);
 	}
 
 	@Override
@@ -40,20 +73,25 @@ public class ModuleDnwCleanUp implements MaintenanceModule {
 
 	@Override
 	public void Cancel() {
-		// TODO Auto-generated method stub
-
+		worker.interrupt();
 	}
 
 	@Override
 	public void setLog(JTextArea logArea) {
-		// TODO Auto-generated method stub
-
+		this.logArea = logArea;
 	}
 
 	@Override
 	public void setConnectionPool(ConnectionPool pool) {
-		// TODO Auto-generated method stub
-		
+		this.cPool = pool;
 	}
 
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if(e.getSource() == move){
+			movePath.setEnabled(true);
+		}else{
+			movePath.setEnabled(false);
+		}
+	}
 }
