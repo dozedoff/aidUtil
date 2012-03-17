@@ -16,7 +16,7 @@ public class ModuleDnwCleanUp implements MaintenanceModule {
 	}
 
 	@Override
-	public void start(ConnectionPool connPool) {
+	public void start() {
 		// TODO Auto-generated method stub
 
 	}
@@ -31,6 +31,12 @@ public class ModuleDnwCleanUp implements MaintenanceModule {
 	public void setLog(JTextArea logArea) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void setConnectionPool(ConnectionPool pool) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
