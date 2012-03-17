@@ -1,5 +1,10 @@
 package app;
 
+import java.util.ArrayList;
+
+import module.MaintenanceModule;
+import module.ModuleDnwCleanUp;
+
 import gui.AidUtil;
 
 public class Core {
@@ -12,7 +17,10 @@ public class Core {
 	public void startCore(){
 		//TODO create and start connection pool
 		
-		aidUtil = new AidUtil(this);
+		ArrayList<MaintenanceModule> modules = new ArrayList<>(10); //DEBUG
+		modules.add(new ModuleDnwCleanUp()); //DEBUG
+		
+		aidUtil = new AidUtil(this,modules);
 		aidUtil.setVisible(true);
 	}
 }

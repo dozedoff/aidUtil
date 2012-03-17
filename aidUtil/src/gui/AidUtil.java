@@ -1,13 +1,20 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Menu;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+
+import module.MaintenanceModule;
 
 import app.Core;
 
@@ -20,9 +27,13 @@ public class AidUtil extends JFrame {
 	JTextArea logArea;
 	JPanel optionPanel, controlPanel;
 	JButton start, cancel;
+	List<MaintenanceModule> modules;
+	JMenuBar mBar;
+	JMenu moduleMenu;
 	
-	public AidUtil(Core core){
+	public AidUtil(Core core, List<MaintenanceModule> modules){
 		this.core = core;
+		this.modules = modules;
 		init();
 	}
 	
@@ -30,6 +41,15 @@ public class AidUtil extends JFrame {
 		setSize(700, 500);
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		JMenuBar mBar = new JMenuBar();
+		setJMenuBar(mBar);
+		mBar.add(moduleMenu = new JMenu("Module"));
+		
+		
+		for(MaintenanceModule mm : modules){
+			moduleMenu.add(new JMenuItem(mm.getClass().getSimpleName()));
+		}
 		
 		controlPanel = new JPanel();
 		controlPanel.add(targetPath = new JTextField(30));
