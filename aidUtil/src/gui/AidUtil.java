@@ -57,15 +57,17 @@ public class AidUtil extends JFrame implements ActionListener{
 	}
 	
 	private void init(List<MaintenanceModule> modules){
+		// set up JFrame
 		setSize(700, 500);
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
+		// add menubar
 		JMenuBar mBar = new JMenuBar();
 		setJMenuBar(mBar);
 		mBar.add(moduleMenu = new JMenu("Module"));
 		
-		
+		// add modules to menu
 		for(MaintenanceModule mm : modules){
 			JMenuItem jmi = new JMenuItem(mm.getClass().getSimpleName());
 			jmi.addActionListener(this);
@@ -73,23 +75,29 @@ public class AidUtil extends JFrame implements ActionListener{
 			guiModelMap.put(jmi, mm);
 		}
 		
+		// create JPanel for contorls
 		controlPanel = new JPanel();
 		controlPanel.add(targetPath = new JTextField(30));
 		targetPath.setToolTipText("Folder to process");
 		
+		// add components to main window
 		add(controlPanel, BorderLayout.NORTH);
 		add(optionPanel = new JPanel(), BorderLayout.CENTER);
 		add(new JScrollPane( logArea = new JTextArea(10,30) ),BorderLayout.SOUTH);
 	}
 	
 	private void setActiveModule(final MaintenanceModule module){
-		optionPanel.removeAll();
+		optionPanel.removeAll(); // clear the option panel
+		
+		// add module specific options
 		module.optionPanel(optionPanel);
 		module.setLog(logArea);
 		
+		// add start/cancel buttons
 		JButton start = new JButton("Start");
 		JButton cancel = new JButton("Cancel");
 		
+		// assign module methods to buttons
 		start.addActionListener(new ActionListener() {
 			
 			@Override
@@ -114,9 +122,9 @@ public class AidUtil extends JFrame implements ActionListener{
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		// map Menuitem to module
 		if(e.getSource() instanceof JMenuItem){
 			setActiveModule(guiModelMap.get(e.getSource()));
 		}
 	}
-	
 }
