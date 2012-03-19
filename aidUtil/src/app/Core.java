@@ -17,11 +17,16 @@
  */
 package app;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import module.MaintenanceModule;
 import module.ModuleDnwCleanUp;
+import module.ModuleFactory;
 
+import file.FileUtil;
 import gui.AidUtil;
 
 public class Core {
@@ -32,12 +37,35 @@ public class Core {
 	}
 	
 	public void startCore(){
-		//TODO create and start connection pool
+		// TODO create and start connection pool
 		
-		ArrayList<MaintenanceModule> modules = new ArrayList<>(10); //DEBUG
-		modules.add(new ModuleDnwCleanUp()); //DEBUG
-		
-		aidUtil = new AidUtil(this,modules);
+		aidUtil = new AidUtil(this,loadModules());
 		aidUtil.setVisible(true);
+	}
+	
+	/**
+	 * This method creates an instance of all maintenance modules in the bin/module directory
+	 * @return a list of instances of all maintenance modules
+	 */
+	public List<MaintenanceModule> loadModules(){
+		String relativePath = "bin"+File.separator+"module"; // path to the bin/module directory
+		File moduleDir = new File(FileUtil.WorkingDir(),relativePath);
+		String [] files = moduleDir.list();	// get list of files in the directory
+		
+		LinkedList<MaintenanceModule> modules = new LinkedList<>();
+
+		for(String s : files){
+			// filter out files that are not maintenance modules
+			if(s.startsWith("Module") && s.endsWith(".class") && !s.equals(ModuleFactory.class.getSimpleName()+".class")){
+				try {
+					s = "module."+s; // otherwise there will be ClassNotFound error
+					modules.add(ModuleFactory.createModule(s.replace(".class", ""))); // create instance of the module
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		return modules;
 	}
 }
