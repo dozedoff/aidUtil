@@ -52,4 +52,11 @@ public interface MaintenanceModule {
 	 * @param pool to be used for database communication
 	 */
 	public void setConnectionPool(ConnectionPool pool);
+	
+	/**
+	 * Path of a file or directory on which the module will carry out
+	 * it's operation.
+	 * @param path the path the module should use
+	 */
+	public void setPath(String path);
 }
