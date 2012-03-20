@@ -19,15 +19,22 @@ package module;
 
 import io.ConnectionPool;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+
+import com.sun.media.sound.ModelSource;
 
 public class ModuleDnwCleanUp implements MaintenanceModule, ActionListener {
 JTextArea logArea;
@@ -36,6 +43,8 @@ ConnectionPool cPool;
 ButtonGroup group;
 JRadioButton delete,report,move; // radio buttons for selecting work mode
 JTextField movePath; // path where files should be moved to
+enum Mode {Delete, Report, Move, None};
+String path;
 
 	@Override
 	public void optionPanel(Container container) {
@@ -55,7 +64,7 @@ JTextField movePath; // path where files should be moved to
 		buttonPanel.add(delete);
 		buttonPanel.add(report);
 		buttonPanel.add(move);
-		
+
 		// add action listeners
 		delete.addActionListener(this);
 		report.addActionListener(this);
@@ -79,7 +88,10 @@ JTextField movePath; // path where files should be moved to
 
 	@Override
 	public void Cancel() {
-		worker.interrupt();
+		if(worker != null){
+			worker.interrupt();
+			worker = null;
+		}
 	}
 
 	@Override
@@ -100,5 +112,89 @@ JTextField movePath; // path where files should be moved to
 		}else{
 			movePath.setEnabled(false);
 		}
+	}
+	
+	private void makeOptionButtons(Mode selected,  Container container){
+		ButtonGroup bg = new ButtonGroup();
+		
+		for(Mode s : Mode.values()){
+			JRadioButton rb = new JRadioButton(s.toString());
+			bg.add(rb);
+			container.add(rb);
+			rb.addActionListener(new ModeSetter(selected, s));
+		}
+	}
+	
+	class ModeSetter implements ActionListener{
+		Mode selected, toSet;
+		
+		public ModeSetter(Mode selected, Mode toSet) {
+			this.selected = selected;
+			this.toSet = toSet;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			selected = toSet;
+		}
+	}
+	
+	public void cleanUp(){
+		// validate settings
+		if(path == null || !new File(path).exists()){
+			return;
+		}
+		
+	}
+	
+	@Override
+	public void setPath(String path) {
+		this.path = path;
+	}
+	
+	/**
+	 * This thread walks the specified directory and sub-directories and adds the found
+	 * files to the queue.
+	 */
+	class FileWorker extends Thread{
+		LinkedBlockingQueue<File> fileQueue;
+		
+		public FileWorker(){
+			super(ModuleDnwCleanUp.class.getSimpleName()+" FileWalker");
+		}
+		
+		@Override
+		public void run() {
+			fileQueue = new LinkedBlockingQueue<>();
+			
+			// TODO Add filewalker here
+		}
+	}
+	
+	/**
+	 * This thread calculates the hash values for the files and adds file and hash to the queue.
+	 */
+	class HashWorker extends Thread{
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+		}
+	}
+	
+	/**
+	 * This thread compares the hash values against the database. 
+	 */
+	class DBworker extends Thread{
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+		}
+	}
+	
+	/**
+	 * This thread performs the selected action.
+	 */
+	class CleanUpWorker extends Thread{
+		
 	}
 }
