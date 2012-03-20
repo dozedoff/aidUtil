@@ -68,4 +68,10 @@ public class Core {
 		}
 		return modules;
 	}
+	
+	public void log(String msg){
+		if(aidUtil != null){
+			aidUtil.log(msg);
+		}
+	}
 }

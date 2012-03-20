@@ -127,4 +127,8 @@ public class AidUtil extends JFrame implements ActionListener{
 			setActiveModule(guiModelMap.get(e.getSource()));
 		}
 	}
+	
+	public void log(String msg){
+		logArea.append(msg+"\n");
+	}
 }
