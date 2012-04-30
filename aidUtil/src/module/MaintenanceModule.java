@@ -23,40 +23,67 @@ import java.awt.Container;
 
 import javax.swing.JTextArea;
 
-public interface MaintenanceModule {
+public abstract class MaintenanceModule {
+	private JTextArea logArea;
+	private ConnectionPool pool;
+	private String path;
+	
 	/**
 	 * Specify a container where modules can add additional components
 	 * to allow more settings.
 	 * @param container container where components should be added
 	 */
-	public void optionPanel(Container container);
+	public abstract void optionPanel(Container container);
 	
 	/**
 	 * Start the module. All parameters must be validated.
 	 */
-	public void start();
+	public abstract void start();
 	
 	/**
 	 * Abort the modules operation.
 	 */
-	public void Cancel();
+	public abstract void Cancel();
 	
 	/**
 	 * Specify a textarea where modules can output information for the user.
 	 * @param logArea for displaying information to the user
 	 */
-	public void setLog(JTextArea logArea);
+	public final void setLog(JTextArea logArea){
+		this.logArea = logArea;
+	}
 	
 	/**
 	 * Specify a connection pool for database operations.
 	 * @param pool to be used for database communication
 	 */
-	public void setConnectionPool(ConnectionPool pool);
+	public final void setConnectionPool(ConnectionPool pool){
+		this.pool = pool;
+	}
+	
+	public ConnectionPool getConnectionPool(){
+		return this.pool;
+	}
 	
 	/**
 	 * Path of a file or directory on which the module will carry out
 	 * it's operation.
 	 * @param path the path the module should use
 	 */
-	public void setPath(String path);
+	public final void setPath(String path){
+		this.path = path;
+	}
+	
+	public String getPath(){
+		return this.path;
+	}
+	
+	/**
+	 * Add a message to the log window.
+	 * @param msg message to add
+	 */
+	public final void log(String msg){
+		if(logArea != null)
+			logArea.append(msg+System.lineSeparator());
+	}
 }

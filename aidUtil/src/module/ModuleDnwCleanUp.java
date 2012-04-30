@@ -36,15 +36,12 @@ import javax.swing.JTextField;
 
 import com.sun.media.sound.ModelSource;
 
-public class ModuleDnwCleanUp implements MaintenanceModule, ActionListener {
-JTextArea logArea;
+public class ModuleDnwCleanUp extends MaintenanceModule implements ActionListener {
 Thread worker;
-ConnectionPool cPool;
 ButtonGroup group;
 JRadioButton delete,report,move; // radio buttons for selecting work mode
 JTextField movePath; // path where files should be moved to
 enum Mode {Delete, Report, Move, None};
-String path;
 
 	@Override
 	public void optionPanel(Container container) {
@@ -95,16 +92,6 @@ String path;
 	}
 
 	@Override
-	public void setLog(JTextArea logArea) {
-		this.logArea = logArea;
-	}
-
-	@Override
-	public void setConnectionPool(ConnectionPool pool) {
-		this.cPool = pool;
-	}
-
-	@Override
 	public void actionPerformed(ActionEvent e) {
 		// textfield is only used in move mode
 		if(e.getSource() == move){
@@ -141,15 +128,10 @@ String path;
 	
 	public void cleanUp(){
 		// validate settings
-		if(path == null || !new File(path).exists()){
+		if(getPath() == null || !new File(getPath()).exists()){
 			return;
 		}
 		
-	}
-	
-	@Override
-	public void setPath(String path) {
-		this.path = path;
 	}
 	
 	/**
