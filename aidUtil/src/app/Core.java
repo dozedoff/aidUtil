@@ -56,7 +56,7 @@ public class Core {
 
 		for(String s : files){
 			// filter out files that are not maintenance modules
-			if(s.startsWith("Module") && s.endsWith(".class") && !s.equals(ModuleFactory.class.getSimpleName()+".class")){
+			if(s.startsWith("Module") && s.endsWith(".class") && !s.equals(ModuleFactory.class.getSimpleName()+".class") && !s.contains("$")){
 				try {
 					s = "module."+s; // otherwise there will be ClassNotFound error
 					modules.add(ModuleFactory.createModule(s.replace(".class", ""))); // create instance of the module
