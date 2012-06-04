@@ -102,6 +102,7 @@ public class AidUtil extends JFrame implements ActionListener{
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				module.setPath(targetPath.getText());
 				module.start();
 			}
 		});
