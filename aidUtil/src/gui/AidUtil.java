@@ -17,6 +17,8 @@
  */
 package gui;
 
+import io.ConnectionPool;
+
 import java.awt.BorderLayout;
 import java.awt.Menu;
 import java.awt.event.ActionEvent;
@@ -42,6 +44,7 @@ public class AidUtil extends JFrame implements ActionListener{
 	private static final long serialVersionUID = -3377472963066131706L;
 
 	Core core;
+	ConnectionPool connPool;
 	
 	JTextField targetPath;
 	JTextArea logArea;
@@ -51,8 +54,10 @@ public class AidUtil extends JFrame implements ActionListener{
 	JMenu moduleMenu;
 	HashMap<JMenuItem, MaintenanceModule> guiModelMap = new HashMap<>();
 	
-	public AidUtil(Core core, List<MaintenanceModule> modules){
+	public AidUtil(Core core, List<MaintenanceModule> modules, ConnectionPool connPool){
 		this.core = core;
+		this.connPool = connPool;
+		
 		init(modules);
 	}
 	
@@ -88,6 +93,8 @@ public class AidUtil extends JFrame implements ActionListener{
 	
 	private void setActiveModule(final MaintenanceModule module){
 		optionPanel.removeAll(); // clear the option panel
+		
+		module.setConnectionPool(connPool);
 		
 		// add module specific options
 		module.optionPanel(optionPanel);

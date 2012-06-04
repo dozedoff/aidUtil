@@ -56,7 +56,6 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		}else{
 			log("[ERR] Target Directory is invalid.");
 		}
-
 	}
 
 	@Override

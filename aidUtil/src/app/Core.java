@@ -17,29 +17,42 @@
  */
 package app;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
-import module.MaintenanceModule;
-import module.ModuleDnwCleanUp;
-import module.ModuleFactory;
-
 import file.FileUtil;
 import gui.AidUtil;
+import io.BoneConnectionPool;
+import io.ConnectionPool;
+
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
+
+import module.MaintenanceModule;
+import module.ModuleFactory;
 
 public class Core {
 	AidUtil aidUtil;
+	ConnectionPool connPool;
 	
 	public static void main(String args[]){
 		new Core().startCore();
 	}
 	
 	public void startCore(){
-		// TODO create and start connection pool
 		
-		aidUtil = new AidUtil(this,loadModules());
+		try {
+			// load database properties
+			Properties dbProps = new Properties();
+			dbProps.load(Core.class.getResourceAsStream("db.properties"));
+			
+			// create connection pool
+			connPool = new BoneConnectionPool(dbProps,10);
+			connPool.startPool();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		aidUtil = new AidUtil(this, loadModules(), connPool);
 		aidUtil.setVisible(true);
 	}
 	
