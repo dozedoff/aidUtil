@@ -76,9 +76,11 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 		log("Found "+blockedDirectories.size() + " " + form + " with blocked files");
 		if(! stop){
 			log("moving " + form + "...");
+			setStatus("Moving...");
 			blockedDirsPath.mkdirs(); // create folder for blocked directories
 			moveDirs();
 			log("Finished moving " + form);
+			setStatus("Finished");
 		}
 	}
 	
@@ -103,13 +105,14 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 	
 	class DirectoryFinder extends SimpleFileVisitor<Path>{
 		@Override
-		public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-
+		public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
 			if(stop){
 				return FileVisitResult.TERMINATE;
 			}
 			
-			return super.postVisitDirectory(dir, exc);
+			setStatus("Scanning " + dir.toString());
+			
+			return super.preVisitDirectory(dir, attrs);
 		}
 		
 		@Override

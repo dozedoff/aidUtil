@@ -47,7 +47,7 @@ public class AidUtil extends JFrame implements ActionListener{
 	Core core;
 	ConnectionPool connPool;
 	
-	JTextField targetPath;
+	JTextField targetPath, status;
 	JTextArea logArea;
 	JPanel optionPanel, controlPanel;
 	JButton start, cancel;
@@ -85,6 +85,8 @@ public class AidUtil extends JFrame implements ActionListener{
 		// create JPanel for contorls
 		controlPanel = new JPanel();
 		controlPanel.add(targetPath = new JTextField(30));
+		controlPanel.add(status = new JTextField(20));
+		status.setEditable(false);
 		targetPath.setToolTipText("Folder to process");
 		
 		// add components to main window
@@ -115,8 +117,9 @@ public class AidUtil extends JFrame implements ActionListener{
 		//set tooltips
 		clear.setToolTipText("Clear the log area");
 		
-		// set path TextField
+		// set TextFields
 		module.setPathField(targetPath);
+		module.setStatusField(status);
 		
 		// assign module methods to buttons
 		start.addActionListener(new ActionListener() {

@@ -82,6 +82,7 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		}
 		
 		log("[INF] Finished hashing files");
+		setStatus("Finished");
 		
 		while(! hashedFiles.isEmpty()){
 			log("[INF] Wating for queue to clear...");
@@ -105,6 +106,12 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		BinaryFileReader bfr = new BinaryFileReader();
 		HashMaker hm = new HashMaker();
 		ImageFilter imgFilter = new ImageFilter();
+		
+		@Override
+		public FileVisitResult preVisitDirectory(Path arg0, BasicFileAttributes arg1) throws IOException {
+			setStatus("Scanning " + arg0.toString());
+			return super.preVisitDirectory(arg0, arg1);
+		}
 		
 		@Override
 		public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
