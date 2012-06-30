@@ -33,6 +33,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.text.DefaultCaret;
 
 import module.MaintenanceModule;
 
@@ -59,6 +60,7 @@ public class AidUtil extends JFrame implements ActionListener{
 	private void init(List<MaintenanceModule> modules){
 		// set up JFrame
 		setSize(700, 500);
+		setTitle("AidUtil");
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
@@ -84,6 +86,11 @@ public class AidUtil extends JFrame implements ActionListener{
 		add(controlPanel, BorderLayout.NORTH);
 		add(optionPanel = new JPanel(), BorderLayout.CENTER);
 		add(new JScrollPane( logArea = new JTextArea(10,30) ),BorderLayout.SOUTH);
+		
+		// enable auto-scroll for the TextArea
+		DefaultCaret caret = (DefaultCaret)logArea.getCaret();
+		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+
 	}
 	
 	private void setActiveModule(final MaintenanceModule module){
@@ -96,6 +103,10 @@ public class AidUtil extends JFrame implements ActionListener{
 		// add start/cancel buttons
 		JButton start = new JButton("Start");
 		JButton cancel = new JButton("Cancel");
+		JButton clear = new JButton("Clear");
+		
+		//set tooltips
+		clear.setToolTipText("Clear the log area");
 		
 		// set path TextField
 		module.setPathField(targetPath);
@@ -117,8 +128,17 @@ public class AidUtil extends JFrame implements ActionListener{
 			}
 		});
 		
+		clear.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				logArea.setText("");
+			}
+		});
+		
 		optionPanel.add(start);
 		optionPanel.add(cancel);
+		optionPanel.add(clear);
 		optionPanel.validate();
 		this.validate();
 	}

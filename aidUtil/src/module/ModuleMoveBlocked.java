@@ -78,14 +78,13 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 			log("moving " + form + "...");
 			blockedDirsPath.mkdirs(); // create folder for blocked directories
 			moveDirs();
+			log("Finished moving " + form);
 		}
-		
-		log("Finished moving " + form);
 	}
 	
 	private void moveDirs(){
 		for(Path p : blockedDirectories){
-			log("Copying directory: " + p.toString());
+			log("Moving directory " + p.toString());
 			
 			try {
 				Files.walkFileTree(p, new DirectoryMover());

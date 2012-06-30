@@ -95,8 +95,9 @@ public abstract class MaintenanceModule {
 	 * @param msg message to add
 	 */
 	public final void log(String msg){
-		if(logArea != null)
+		if(logArea != null){
 			logArea.append(msg+System.lineSeparator());
+		}
 	}
 	
 	class ModuleWorker extends Thread {
