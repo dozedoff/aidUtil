@@ -22,6 +22,8 @@ import io.MySQL;
 
 import java.awt.Container;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -99,10 +101,12 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 	class FileHasher extends SimpleFileVisitor<Path>{
 		BinaryFileReader bfr = new BinaryFileReader();
 		HashMaker hm = new HashMaker();
+		ImageFilter imgFilter = new ImageFilter();
 		
 		@Override
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)throws IOException {
-			if(! file.getFileName().toString().startsWith("WARNING-")){
+			String filename = file.getFileName().toString();
+			if(! filename.startsWith("WARNING-") && imgFilter.accept(null, filename)){
 				String hash = hm.hash(bfr.get(file.toFile()));
 				statHashed++;
 				
@@ -188,5 +192,30 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 				workList.clear();
 			}
 		}
+	}
+	
+	class ImageFilter implements FilenameFilter {
+
+		@Override
+		public boolean accept(File dir, String name) {
+			if(name == null){
+				return false;
+			}
+			
+			int extIndex = name.lastIndexOf(".");
+			
+			// has no extension
+			if(extIndex == -1){
+				return false;
+			}
+			
+			String ext = name.substring(extIndex+1);
+			
+			if(ext.equals("jpg") || ext.equals("png") || ext.equals("gif")){
+				return true;
+			}
+			return false;
+		}
+		
 	}
 }
