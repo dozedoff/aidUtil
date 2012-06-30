@@ -30,6 +30,7 @@ import java.util.LinkedList;
 public class ModuleMoveBlocked extends MaintenanceModule{
 	final String BLOCKED_TAG = "WARNING-";
 	
+	boolean stop = false;
 	LinkedList<Path> blockedDirectories = new LinkedList<>();
 	
 	@Override
@@ -40,6 +41,7 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 
 	@Override
 	public void start() {
+		stop = false;
 		File f = new File(getPath());
 		
 		// check that directory exists
@@ -63,11 +65,20 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 
 	@Override
 	public void Cancel() {
-		// TODO Auto-generated method stub
-		
+		stop = true;
 	}
 	
 	class DirectoryFinder extends SimpleFileVisitor<Path>{
+		@Override
+		public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+
+			if(stop){
+				return FileVisitResult.TERMINATE;
+			}
+			
+			return super.postVisitDirectory(dir, exc);
+		}
+		
 		@Override
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 			// find files with warning tags
