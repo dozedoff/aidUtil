@@ -40,6 +40,7 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 	DBWorker worker;
 	
 	int statHashed, statBlocked;
+	boolean stop = false;
 	
 	@Override
 	public void optionPanel(Container container) {
@@ -52,6 +53,9 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		// reset stats
 		statHashed = 0;
 		statBlocked = 0;
+		
+		// reset stop flag
+		stop = false;
 		
 		File f = new File(getPath());
 		
@@ -94,14 +98,22 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 
 	@Override
 	public void Cancel() {
-		// TODO Auto-generated method stub
-
+		stop = true;
 	}
 	
 	class FileHasher extends SimpleFileVisitor<Path>{
 		BinaryFileReader bfr = new BinaryFileReader();
 		HashMaker hm = new HashMaker();
 		ImageFilter imgFilter = new ImageFilter();
+		
+		@Override
+		public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+			if(stop){
+				return FileVisitResult.TERMINATE;
+			}
+			
+			return super.postVisitDirectory(dir, exc);
+		}
 		
 		@Override
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)throws IOException {
@@ -134,7 +146,7 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 			log("[ERR] could not move file " + hf.getFile().toString() + " ("+ e.getMessage() + ")");
 			e.printStackTrace();
 		}
-		log("[INF] "+sb.toString());
+		log("[INF] Blacklisted file found in " + hf.getFile().getParent().toString());
 	}
 	
 	class HashedFile {
