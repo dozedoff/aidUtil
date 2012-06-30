@@ -22,11 +22,12 @@ import io.ConnectionPool;
 import java.awt.Container;
 
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 public abstract class MaintenanceModule {
 	private JTextArea logArea;
 	private ConnectionPool pool;
-	private String path;
+	private JTextField path;
 	
 	/**
 	 * Specify a container where modules can add additional components
@@ -71,11 +72,15 @@ public abstract class MaintenanceModule {
 	 * @param path the path the module should use
 	 */
 	public final void setPath(String path){
-		this.path = path;
+		this.path.setText(path);
 	}
 	
 	public String getPath(){
-		return this.path;
+		return this.path.getText();
+	}
+	
+	public void setPathField(JTextField txt){
+		this.path = txt;
 	}
 	
 	/**

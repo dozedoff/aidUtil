@@ -97,6 +97,9 @@ public class AidUtil extends JFrame implements ActionListener{
 		JButton start = new JButton("Start");
 		JButton cancel = new JButton("Cancel");
 		
+		// set path TextField
+		module.setPathField(targetPath);
+		
 		// assign module methods to buttons
 		start.addActionListener(new ActionListener() {
 			
