@@ -24,13 +24,17 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
 
 public class ModuleMoveBlocked extends MaintenanceModule{
 	final String BLOCKED_TAG = "WARNING-";
+	final String BLOCKED_DIR = "CHECK";
 	
+	boolean stop = false;
 	LinkedList<Path> blockedDirectories = new LinkedList<>();
+	File blockedDirsPath;
 	
 	@Override
 	public void optionPanel(Container container) {
@@ -40,6 +44,7 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 
 	@Override
 	public void start() {
+		stop = false;
 		File f = new File(getPath());
 		
 		// check that directory exists
@@ -57,17 +62,44 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 			e.printStackTrace();
 		}
 		
+		blockedDirsPath = new File(f.getParent(),BLOCKED_DIR);
 		
-		
+		if(! stop){
+			blockedDirsPath.mkdirs(); // create folder for blocked directories
+			moveDirs();
+		}
+	}
+	
+	private void moveDirs(){
+		for(Path p : blockedDirectories){
+			log("Copying directory: " + p.toString());
+			
+			try {
+				Files.walkFileTree(p, new DirectoryMover());
+			} catch (IOException e) {
+				log("Failed to move Directory " + p.toString() + " (" + e.getMessage()+")");
+				e.printStackTrace();
+			}
+			
+		}
 	}
 
 	@Override
 	public void Cancel() {
-		// TODO Auto-generated method stub
-		
+		stop = true;
 	}
 	
 	class DirectoryFinder extends SimpleFileVisitor<Path>{
+		@Override
+		public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+
+			if(stop){
+				return FileVisitResult.TERMINATE;
+			}
+			
+			return super.postVisitDirectory(dir, exc);
+		}
+		
 		@Override
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 			// find files with warning tags
@@ -85,6 +117,34 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 			}
 			
 			return super.visitFile(file, attrs);
+		}
+	}
+	
+	class DirectoryMover extends SimpleFileVisitor<Path>{
+		Path currMoveDir;
+		
+		@Override
+		public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+			if(stop){
+				return FileVisitResult.TERMINATE;
+			}
+			
+			File f = new File(blockedDirsPath,dir.getFileName().toString());
+			f.mkdirs(); // create new directory with identical name in the blocked directory folder
+			currMoveDir = f.toPath();
+			return super.preVisitDirectory(dir, attrs);
+		}
+		
+		@Override
+		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+			Files.move(file, currMoveDir.resolve(file.getFileName())); // move files
+			return super.visitFile(file, attrs);
+		}
+		
+		@Override
+		public FileVisitResult postVisitDirectory(Path arg0, IOException arg1) throws IOException {
+			Files.delete(arg0); // delete the source directory when done
+			return super.postVisitDirectory(arg0, arg1);
 		}
 	}
 
