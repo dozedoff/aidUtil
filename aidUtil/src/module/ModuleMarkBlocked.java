@@ -152,6 +152,8 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 					hashedFiles.add(new HashedFile(hash, file));
 					hashedFiles.notify();
 				}
+			}else if (filename.startsWith("WARNING-")){
+				addBlacklisted(file.getParent());
 			}
 			return super.visitFile(file, attrs);
 		}
