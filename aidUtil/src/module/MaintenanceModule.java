@@ -45,7 +45,7 @@ public abstract class MaintenanceModule {
 	 * Run module as a Thread
 	 */
 	public void startWorker(){
-		new ModuleWorker().start();
+		new ModuleWorker(this).start();
 	}
 	
 	/**
@@ -100,13 +100,16 @@ public abstract class MaintenanceModule {
 	}
 	
 	class ModuleWorker extends Thread {
-		public ModuleWorker() {
+		MaintenanceModule module;
+		
+		public ModuleWorker(MaintenanceModule module) {
 			super("ModuleWorker");
+			this.module = module;
 		}
 		
 		@Override
 		public void run() {
-			start();
+			module.start();
 			super.run();
 		}
 	}
