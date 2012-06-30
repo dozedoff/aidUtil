@@ -33,11 +33,14 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import time.StopWatch;
+
 import file.BinaryFileReader;
 
 public class ModuleMarkBlocked extends MaintenanceModule {
 	LinkedBlockingDeque<HashedFile> hashedFiles = new LinkedBlockingDeque<>();
 	DBWorker worker;
+	StopWatch stopWatch = new StopWatch();
 	
 	int statHashed, statBlocked;
 	boolean stop = false;
@@ -53,6 +56,7 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		// reset stats
 		statHashed = 0;
 		statBlocked = 0;
+		stopWatch.reset();
 		
 		// reset stop flag
 		stop = false;
@@ -63,6 +67,8 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 			log("[ERR] Target Directory is invalid.");
 			return;
 		}
+		
+		stopWatch.start();
 		
 		log("[INF] Starting worker thread...");
 		if(worker != null && worker.isAlive()){
@@ -94,7 +100,10 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		log("[INF] Stopping worker thread...");
 		worker.interrupt();
 		
+		stopWatch.stop();
+		
 		log("[INF] Blocked files marking done. " + statHashed +" files hashed, " + statBlocked +" blacklisted files found.");
+		log("[INF] Mark blacklisted run duration - " + stopWatch.getTime());
 	}
 
 	@Override
