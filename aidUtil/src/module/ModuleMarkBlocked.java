@@ -36,13 +36,16 @@ import java.util.concurrent.LinkedBlockingDeque;
 import time.StopWatch;
 
 import file.BinaryFileReader;
+import file.FileUtil;
 
 public class ModuleMarkBlocked extends MaintenanceModule {
 	LinkedBlockingDeque<HashedFile> hashedFiles = new LinkedBlockingDeque<>();
+	LinkedList<Path> blacklistedDir = new LinkedList<>();
+	
 	DBWorker worker;
 	StopWatch stopWatch = new StopWatch();
 	
-	int statHashed, statBlocked;
+	int statHashed, statBlocked, statDir;
 	boolean stop = false;
 	
 	@Override
@@ -56,10 +59,14 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		// reset stats
 		statHashed = 0;
 		statBlocked = 0;
+		statDir = 0;
 		stopWatch.reset();
 		
 		// reset stop flag
 		stop = false;
+		
+		// clear list
+		blacklistedDir.clear();
 		
 		File f = new File(getPath());
 		
@@ -100,9 +107,12 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		log("[INF] Stopping worker thread...");
 		worker.interrupt();
 		
+		log("[INF] Moving blacklisted directories...");
+		moveBlacklisted();
+		
 		stopWatch.stop();
 		
-		log("[INF] Blocked files marking done. " + statHashed +" files hashed, " + statBlocked +" blacklisted files found.");
+		log("[INF] Blocked files marking done. " + statHashed +" files hashed, " + statBlocked +" blacklisted files found, " + statDir + " blacklisted Directories moved.");
 		log("[INF] Mark blacklisted run duration - " + stopWatch.getTime());
 	}
 
@@ -159,10 +169,27 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		try {
 			Files.move(hf.getFile(), hf.getFile().resolveSibling(sb.toString()));
 		} catch (IOException e) {
-			log("[ERR] could not move file " + hf.getFile().toString() + " ("+ e.getMessage() + ")");
+			log("[ERR] Could not move file " + hf.getFile().toString() + " ("+ e.getMessage() + ")");
 			e.printStackTrace();
 		}
 		log("[INF] Blacklisted file found in " + hf.getFile().getParent().toString());
+	}
+	
+	private void addBlacklisted(Path path){
+		if(! blacklistedDir.contains(path)){
+			blacklistedDir.add(path);
+		}
+	}
+	
+	private void moveBlacklisted(){
+		for(Path p : blacklistedDir){
+			try {
+				FileUtil.moveDirectory(p, p.getRoot().resolve("CHECK"));
+				statDir++;
+			} catch (IOException e) {
+				log("[ERR] Could not move directory " + p.toString() + " ("+ e.getMessage() + ")");
+			}
+		}
 	}
 	
 	class HashedFile {
@@ -214,6 +241,7 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 					if(sql.isBlacklisted(hf.getHash())){
 						statBlocked++;
 						renameFile(hf);
+						addBlacklisted(hf.getFile().getParent());
 					}
 				}
 				
