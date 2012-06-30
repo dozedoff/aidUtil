@@ -56,7 +56,7 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 		}
 		
 		Path startPath = f.toPath();
-		
+		log("Searching for blocked files...");
 		try {
 			Files.walkFileTree(startPath, new DirectoryFinder());
 		} catch (IOException e) {
@@ -66,10 +66,21 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 		
 		blockedDirsPath = new File(f.getParent(),BLOCKED_DIR);
 		
+		String form;
+		if(blockedDirectories.size() == 1){
+			form = "directory";
+		}else{
+			form = "directories";
+		}
+		
+		log("Found "+blockedDirectories.size() + " " + form + " with blocked files");
 		if(! stop){
+			log("moving " + form + "...");
 			blockedDirsPath.mkdirs(); // create folder for blocked directories
 			moveDirs();
 		}
+		
+		log("Finished moving " + form);
 	}
 	
 	private void moveDirs(){
