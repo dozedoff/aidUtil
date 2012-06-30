@@ -22,11 +22,12 @@ import io.ConnectionPool;
 import java.awt.Container;
 
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 public abstract class MaintenanceModule {
 	private JTextArea logArea;
 	private ConnectionPool pool;
-	private String path;
+	private JTextField path;
 	
 	/**
 	 * Specify a container where modules can add additional components
@@ -39,6 +40,13 @@ public abstract class MaintenanceModule {
 	 * Start the module. All parameters must be validated.
 	 */
 	public abstract void start();
+	
+	/**
+	 * Run module as a Thread
+	 */
+	public void startWorker(){
+		new ModuleWorker(this).start();
+	}
 	
 	/**
 	 * Abort the modules operation.
@@ -71,11 +79,15 @@ public abstract class MaintenanceModule {
 	 * @param path the path the module should use
 	 */
 	public final void setPath(String path){
-		this.path = path;
+		this.path.setText(path);
 	}
 	
 	public String getPath(){
-		return this.path;
+		return this.path.getText();
+	}
+	
+	public void setPathField(JTextField txt){
+		this.path = txt;
 	}
 	
 	/**
@@ -83,7 +95,23 @@ public abstract class MaintenanceModule {
 	 * @param msg message to add
 	 */
 	public final void log(String msg){
-		if(logArea != null)
+		if(logArea != null){
 			logArea.append(msg+System.lineSeparator());
+		}
+	}
+	
+	class ModuleWorker extends Thread {
+		MaintenanceModule module;
+		
+		public ModuleWorker(MaintenanceModule module) {
+			super("ModuleWorker");
+			this.module = module;
+		}
+		
+		@Override
+		public void run() {
+			module.start();
+			super.run();
+		}
 	}
 }
