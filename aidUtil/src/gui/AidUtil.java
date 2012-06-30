@@ -105,7 +105,7 @@ public class AidUtil extends JFrame implements ActionListener{
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				module.start();
+				module.startWorker();
 			}
 		});
 		

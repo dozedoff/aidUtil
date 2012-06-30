@@ -42,6 +42,13 @@ public abstract class MaintenanceModule {
 	public abstract void start();
 	
 	/**
+	 * Run module as a Thread
+	 */
+	public void startWorker(){
+		new ModuleWorker().start();
+	}
+	
+	/**
 	 * Abort the modules operation.
 	 */
 	public abstract void Cancel();
@@ -90,5 +97,17 @@ public abstract class MaintenanceModule {
 	public final void log(String msg){
 		if(logArea != null)
 			logArea.append(msg+System.lineSeparator());
+	}
+	
+	class ModuleWorker extends Thread {
+		public ModuleWorker() {
+			super("ModuleWorker");
+		}
+		
+		@Override
+		public void run() {
+			start();
+			super.run();
+		}
 	}
 }
