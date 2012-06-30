@@ -45,6 +45,8 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 	@Override
 	public void start() {
 		stop = false;
+		blockedDirectories.clear();
+		
 		File f = new File(getPath());
 		
 		// check that directory exists
