@@ -32,7 +32,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import module.ModuleMarkBlocked.HashedFile;
 import module.ModuleMarkBlocked.ImageFilter;
 
 import time.StopWatch;

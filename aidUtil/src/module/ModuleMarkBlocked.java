@@ -22,7 +22,6 @@ import io.MySQL;
 
 import java.awt.Container;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -32,20 +31,22 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import time.StopWatch;
-
 import file.BinaryFileReader;
 import file.FileUtil;
 
 public class ModuleMarkBlocked extends MaintenanceModule {
-	LinkedBlockingDeque<HashedFile> hashedFiles = new LinkedBlockingDeque<>();
+	LinkedBlockingDeque<Path> pendingFiles = new LinkedBlockingDeque<>();
 	LinkedList<Path> blacklistedDir = new LinkedList<>();
 	
-	DBWorker worker;
+	DBWorker worker , worker2;
 	StopWatch stopWatch = new StopWatch();
 	
-	int statHashed, statBlocked, statDir;
+	AtomicInteger statHashed = new AtomicInteger(0);
+	
+	int statBlocked, statDir;
 	boolean stop = false;
 	
 	@Override
@@ -57,7 +58,7 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 	@Override
 	public void start() {
 		// reset stats
-		statHashed = 0;
+		statHashed.set(0);
 		statBlocked = 0;
 		statDir = 0;
 		stopWatch.reset();
@@ -77,6 +78,14 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		
 		stopWatch.start();
 		
+		log("[INF] Walking directories...");
+		try {
+			Files.walkFileTree( f.toPath(), new FileHasher());
+		} catch (IOException e) {
+			log("[ERR] File walk failed");
+			e.printStackTrace();
+		}
+		
 		log("[INF] Starting worker thread...");
 		if(worker != null && worker.isAlive()){
 			log("[ERR] Worker is already running!");
@@ -86,26 +95,21 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		worker = new DBWorker();
 		worker.start();
 		
-		log("[INF] Walking directories...");
-		try {
-			Files.walkFileTree( f.toPath(), new FileHasher());
-		} catch (IOException e) {
-			log("[ERR] File walk failed");
-			e.printStackTrace();
-		}
+		worker2 = new DBWorker();
+		worker2.start();
 		
-		log("[INF] Finished hashing files");
-		setStatus("Finished");
-		
-		while(! hashedFiles.isEmpty()){
-			log("[INF] Wating for queue to clear...");
+		while(! pendingFiles.isEmpty()){
 			try {
+				setStatus("Remaining: " + pendingFiles.size());
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {}
 		}
 		
-		log("[INF] Stopping worker thread...");
-		worker.interrupt();
+		info("Wating for worker threads to finish...");
+		try{
+			worker.join();
+			worker2.join();
+		}catch(InterruptedException e){}
 		
 		log("[INF] Moving blacklisted directories...");
 		moveBlacklisted();
@@ -114,16 +118,17 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		
 		log("[INF] Blocked files marking done. " + statHashed +" files hashed, " + statBlocked +" blacklisted files found, " + statDir + " blacklisted Directories moved.");
 		log("[INF] Mark blacklisted run duration - " + stopWatch.getTime());
+		
+		setStatus("Finished");
 	}
 
 	@Override
 	public void Cancel() {
 		stop = true;
+		pendingFiles.clear();
 	}
 	
 	class FileHasher extends SimpleFileVisitor<Path>{
-		BinaryFileReader bfr = new BinaryFileReader();
-		HashMaker hm = new HashMaker();
 		ImageFilter imgFilter = new ImageFilter();
 		
 		@Override
@@ -145,13 +150,7 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)throws IOException {
 			String filename = file.getFileName().toString();
 			if(! filename.startsWith("WARNING-") && imgFilter.accept(null, filename)){
-				String hash = hm.hash(bfr.getViaDataInputStream(file.toFile()));
-				statHashed++;
-				
-				synchronized (hashedFiles) {
-					hashedFiles.add(new HashedFile(hash, file));
-					hashedFiles.notify();
-				}
+					pendingFiles.add(file);
 			}else if (filename.startsWith("WARNING-")){
 				addBlacklisted(file.getParent());
 			}
@@ -159,22 +158,22 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		}
 	}
 	
-	private void renameFile(HashedFile hf){
+	private void renameFile(Path path, String hash){
 		// create filename with prefix WARNING-{hash}-
 		StringBuilder sb = new StringBuilder();
 		sb.append("WARNING-");
-		sb.append(hf.getHash());
+		sb.append(hash);
 		sb.append("-");
-		sb.append(hf.getFile().getFileName().toString());
+		sb.append(path.getFileName().toString());
 		
 		// rename file (ex. from JavaDoc)
 		try {
-			Files.move(hf.getFile(), hf.getFile().resolveSibling(sb.toString()));
+			Files.move(path, path.resolveSibling(sb.toString()));
 		} catch (IOException e) {
-			log("[ERR] Could not move file " + hf.getFile().toString() + " ("+ e.getMessage() + ")");
+			error("Could not move file " + path.toString() + " ("+ e.getMessage() + ")");
 			e.printStackTrace();
 		}
-		log("[INF] Blacklisted file found in " + hf.getFile().getParent().toString());
+		info("Blacklisted file found in " + path.getParent().toString());
 	}
 	
 	private void addBlacklisted(Path path){
@@ -194,24 +193,12 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		}
 	}
 	
-	class HashedFile {
-		String hash;
-		Path file;
-		public HashedFile(String hash, Path file) {
-			this.hash = hash;
-			this.file = file;
-		}
-		public String getHash() {
-			return hash;
-		}
-		public Path getFile() {
-			return file;
-		}
-	}
-	
 	class DBWorker extends Thread {
-		LinkedList<HashedFile> workList = new LinkedList<>();
+		LinkedList<Path> workList = new LinkedList<>();
 		MySQL sql = new MySQL(getConnectionPool());
+		
+		BinaryFileReader bfr = new BinaryFileReader();
+		HashMaker hm = new HashMaker();
 		
 		public DBWorker(){
 			super("DBWorker");
@@ -219,31 +206,27 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		
 		@Override
 		public void run() {
-			while(! isInterrupted()){
+			while(! isInterrupted() && (! pendingFiles.isEmpty())){
+				pendingFiles.drainTo(workList,200); // get work
 				
-				synchronized (hashedFiles) {
-					// wait for work
-					while(hashedFiles.isEmpty() && (! isInterrupted())){
-						try {
-							hashedFiles.wait();
-						} catch (InterruptedException e) {
-							interrupt(); // IE causes interrupted flag to clear
+				for(Path p : workList){
+					String hash;
+					try {
+						// read & hash file
+						hash = hm.hash(bfr.getViaDataInputStream(p.toFile()));
+						
+						// track stats
+						statHashed.incrementAndGet();
+						
+						// see if any files are blacklisted
+						if(sql.isBlacklisted(hash)){
+							statBlocked++;
+							renameFile(p, hash);
+							addBlacklisted(p.getParent());
 						}
-					}
-				}
-				
-				if(isInterrupted()){
-					break;
-				}
-				
-				hashedFiles.drainTo(workList); // get work
-				
-				for(HashedFile hf : workList){
-					// see if any files are blacklisted
-					if(sql.isBlacklisted(hf.getHash())){
-						statBlocked++;
-						renameFile(hf);
-						addBlacklisted(hf.getFile().getParent());
+					} catch (IOException e) {
+						error("Failed to process " + p.toString() + " (" + e.getMessage() + ")");
+						e.printStackTrace();
 					}
 				}
 				
