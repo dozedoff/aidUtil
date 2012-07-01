@@ -72,23 +72,23 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		File f = new File(getPath());
 		
 		if((! f.exists()) || (! f.isDirectory())){	
-			log("[ERR] Target Directory is invalid.");
+			error("Target Directory is invalid.");
 			return;
 		}
 		
 		stopWatch.start();
 		
-		log("[INF] Walking directories...");
+		info("Walking directories...");
 		try {
 			Files.walkFileTree( f.toPath(), new FileHasher());
 		} catch (IOException e) {
-			log("[ERR] File walk failed");
+			error("File walk failed");
 			e.printStackTrace();
 		}
 		
-		log("[INF] Starting worker thread...");
+		info("Starting worker thread...");
 		if(worker != null && worker.isAlive()){
-			log("[ERR] Worker is already running!");
+			error("Worker is already running!");
 			return;
 		}
 		
@@ -111,13 +111,13 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 			worker2.join();
 		}catch(InterruptedException e){}
 		
-		log("[INF] Moving blacklisted directories...");
+		info("Moving blacklisted directories...");
 		moveBlacklisted();
 		
 		stopWatch.stop();
 		
-		log("[INF] Blocked files marking done. " + statHashed +" files hashed, " + statBlocked +" blacklisted files found, " + statDir + " blacklisted Directories moved.");
-		log("[INF] Mark blacklisted run duration - " + stopWatch.getTime());
+		info("Blocked files marking done. " + statHashed +" files hashed, " + statBlocked +" blacklisted files found, " + statDir + " blacklisted Directories moved.");
+		info("Mark blacklisted run duration - " + stopWatch.getTime());
 		
 		setStatus("Finished");
 	}
@@ -188,7 +188,7 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 				FileUtil.moveDirectory(p, p.getRoot().resolve("CHECK"));
 				statDir++;
 			} catch (IOException e) {
-				log("[ERR] Could not move directory " + p.toString() + " ("+ e.getMessage() + ")");
+				error("Could not move directory " + p.toString() + " ("+ e.getMessage() + ")");
 			}
 		}
 	}

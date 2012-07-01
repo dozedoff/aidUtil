@@ -24,11 +24,8 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
-
-import com.sun.org.apache.bcel.internal.generic.NEW;
 
 import time.StopWatch;
 
@@ -57,17 +54,17 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 		
 		// check that directory exists
 		if((! f.exists()) || (! f.isDirectory())){
-			log(getPath()+" is not a valid directory");
+			error(getPath()+" is not a valid directory");
 			return;
 		}
 		stopWatch.start();
 		
 		Path startPath = f.toPath();
-		log("Searching for blocked files...");
+		info("Searching for blocked files...");
 		try {
 			Files.walkFileTree(startPath, new DirectoryFinder());
 		} catch (IOException e) {
-			log("Error while walking file tree: " + e.getMessage());
+			error("Error while walking file tree: " + e.getMessage());
 			e.printStackTrace();
 		}
 		
@@ -80,29 +77,29 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 			form = "directories";
 		}
 		
-		log("Found "+blockedDirectories.size() + " " + form + " with blocked files");
+		info("Found "+blockedDirectories.size() + " " + form + " with blocked files");
 		if(! stop){
-			log("moving " + form + "...");
+			info("moving " + form + "...");
 			setStatus("Moving...");
 			blockedDirsPath.mkdirs(); // create folder for blocked directories
 			moveDirs();
-			log("Finished moving " + form);
+			info("Finished moving " + form);
 			setStatus("Finished");
 		}
 		
 		stopWatch.stop();
 		
-		log("Move blacklisted directories duration - " + stopWatch.getTime());
+		info("Move blacklisted directories duration - " + stopWatch.getTime());
 	}
 	
 	private void moveDirs(){
 		for(Path p : blockedDirectories){
-			log("Moving directory " + p.toString());
+			info("Moving directory " + p.toString());
 			
 			try {
 				Files.walkFileTree(p, new DirectoryMover());
 			} catch (IOException e) {
-				log("Failed to move Directory " + p.toString() + " (" + e.getMessage()+")");
+				error("Failed to move Directory " + p.toString() + " (" + e.getMessage()+")");
 				e.printStackTrace();
 			}
 			
@@ -134,7 +131,7 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 				
 				// usualy files that are in the root directory
 				if(directory == null){
-					log("Could not add directory for "+file.toString());
+					error("Could not add directory for "+file.toString());
 					return super.visitFile(file, attrs);
 				}
 				
