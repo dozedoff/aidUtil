@@ -17,10 +17,25 @@
  */
 package module;
 
+import hash.DirectoryHasher;
+import io.MySQL;
+import io.MySQLtables;
+
 import java.awt.Container;
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import time.StopWatch;
+import file.FileInfo;
 
 public class ModuleAddBlacklisted extends MaintenanceModule {
-
+	LinkedBlockingQueue<FileInfo> hashedFiles = new LinkedBlockingQueue<>();
+	StopWatch stopWatch = new StopWatch();
+	MySQL sql;
+	
+	int hashed = 0;
+	
 	@Override
 	public void optionPanel(Container container) {
 		// TODO Auto-generated method stub
@@ -29,8 +44,33 @@ public class ModuleAddBlacklisted extends MaintenanceModule {
 
 	@Override
 	public void start() {
-		// TODO Auto-generated method stub
-
+		sql = new MySQL(getConnectionPool());
+		hashed = 0;
+		File path = new File(getPath());
+		
+		if(!path.exists() || !path.isDirectory()){
+			error("Invalid directory");
+			return;
+		}
+		
+		stopWatch.start();
+		info("Hashing files...");
+		DirectoryHasher dh = new DirectoryHasher(hashedFiles);
+		try {
+			dh.hashDirectory(getPath()); //TODO replace this
+		} catch (IOException e) {
+			error("Directory hashing failed: " + e.getMessage());
+		}
+		info("Hashing done.");
+		
+		info("Adding hashes to database...");
+		hashed = hashedFiles.size();
+		
+		for(FileInfo fi : hashedFiles){
+			sql.update(fi.getHash(),MySQLtables.Block);
+		}
+		stopWatch.stop();
+		info("Finished processing " + hashed + " blacklisted files in " + stopWatch.getTime());
 	}
 
 	@Override
@@ -38,5 +78,4 @@ public class ModuleAddBlacklisted extends MaintenanceModule {
 		// TODO Auto-generated method stub
 
 	}
-
 }
