@@ -18,23 +18,33 @@
 package module;
 
 import hash.DirectoryHasher;
+import hash.HashMaker;
 import io.MySQL;
 import io.MySQLtables;
 
 import java.awt.Container;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import module.ModuleMarkBlocked.HashedFile;
+import module.ModuleMarkBlocked.ImageFilter;
+
 import time.StopWatch;
+import file.BinaryFileReader;
 import file.FileInfo;
 
 public class ModuleAddBlacklisted extends MaintenanceModule {
-	LinkedBlockingQueue<FileInfo> hashedFiles = new LinkedBlockingQueue<>();
 	StopWatch stopWatch = new StopWatch();
 	MySQL sql;
 	
-	int hashed = 0;
+	int statHashed = 0;
+	boolean stop = false;
 	
 	@Override
 	public void optionPanel(Container container) {
@@ -44,8 +54,11 @@ public class ModuleAddBlacklisted extends MaintenanceModule {
 
 	@Override
 	public void start() {
+		stop = false;
+		statHashed = 0;
+		
 		sql = new MySQL(getConnectionPool());
-		hashed = 0;
+		
 		File path = new File(getPath());
 		
 		if(!path.exists() || !path.isDirectory()){
@@ -55,27 +68,48 @@ public class ModuleAddBlacklisted extends MaintenanceModule {
 		
 		stopWatch.start();
 		info("Hashing files...");
-		DirectoryHasher dh = new DirectoryHasher(hashedFiles);
 		try {
-			dh.hashDirectory(getPath()); //TODO replace this
+			Files.walkFileTree(path.toPath(), new FileHasher());
 		} catch (IOException e) {
 			error("Directory hashing failed: " + e.getMessage());
 		}
-		info("Hashing done.");
 		
-		info("Adding hashes to database...");
-		hashed = hashedFiles.size();
-		
-		for(FileInfo fi : hashedFiles){
-			sql.update(fi.getHash(),MySQLtables.Block);
-		}
 		stopWatch.stop();
-		info("Finished processing " + hashed + " blacklisted files in " + stopWatch.getTime());
+		info("Finished processing " + statHashed + " blacklisted files in " + stopWatch.getTime());
 	}
 
 	@Override
 	public void Cancel() {
 		// TODO Auto-generated method stub
 
+	}
+	
+	class FileHasher extends SimpleFileVisitor<Path>{
+		BinaryFileReader bfr = new BinaryFileReader();
+		HashMaker hm = new HashMaker();
+		
+		@Override
+		public FileVisitResult preVisitDirectory(Path arg0, BasicFileAttributes arg1) throws IOException {
+			setStatus("Scanning " + arg0.toString());
+			return super.preVisitDirectory(arg0, arg1);
+		}
+		
+		@Override
+		public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+			if(stop){
+				return FileVisitResult.TERMINATE;
+			}
+			
+			return super.postVisitDirectory(dir, exc);
+		}
+		
+		@Override
+		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)throws IOException {
+				String hash = hm.hash(bfr.getViaDataInputStream(file.toFile()));
+				statHashed++;
+				
+				sql.update(hash, MySQLtables.Block);
+			return super.visitFile(file, attrs);
+		}
 	}
 }
