@@ -94,9 +94,28 @@ public abstract class MaintenanceModule {
 	 * Add a message to the log window.
 	 * @param msg message to add
 	 */
+	@Deprecated
 	public final void log(String msg){
 		if(logArea != null){
 			logArea.append(msg+System.lineSeparator());
+		}
+	}
+	
+	public final void info(String msg){
+		if(logArea != null){
+			logArea.append("[Inf] "+msg+System.lineSeparator());
+		}
+	}
+	
+	public final void warning(String msg){
+		if(logArea != null){
+			logArea.append("[WRN] "+msg+System.lineSeparator());
+		}
+	}
+	
+	public final void error(String msg){
+		if(logArea != null){
+			logArea.append("[ERR] "+msg+System.lineSeparator());
 		}
 	}
 	
