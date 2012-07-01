@@ -145,7 +145,7 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)throws IOException {
 			String filename = file.getFileName().toString();
 			if(! filename.startsWith("WARNING-") && imgFilter.accept(null, filename)){
-				String hash = hm.hash(bfr.get(file.toFile()));
+				String hash = hm.hash(bfr.getViaDataInputStream(file.toFile()));
 				statHashed++;
 				
 				synchronized (hashedFiles) {
