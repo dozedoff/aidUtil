@@ -28,6 +28,10 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
 
+import com.sun.org.apache.bcel.internal.generic.NEW;
+
+import time.StopWatch;
+
 public class ModuleMoveBlocked extends MaintenanceModule{
 	final String BLOCKED_TAG = "WARNING-";
 	final String BLOCKED_DIR = "CHECK";
@@ -35,6 +39,7 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 	boolean stop = false;
 	LinkedList<Path> blockedDirectories = new LinkedList<>();
 	File blockedDirsPath;
+	StopWatch stopWatch = new StopWatch();
 	
 	@Override
 	public void optionPanel(Container container) {
@@ -46,6 +51,7 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 	public void start() {
 		stop = false;
 		blockedDirectories.clear();
+		stopWatch.reset();
 		
 		File f = new File(getPath());
 		
@@ -54,6 +60,7 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 			log(getPath()+" is not a valid directory");
 			return;
 		}
+		stopWatch.start();
 		
 		Path startPath = f.toPath();
 		log("Searching for blocked files...");
@@ -76,10 +83,16 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 		log("Found "+blockedDirectories.size() + " " + form + " with blocked files");
 		if(! stop){
 			log("moving " + form + "...");
+			setStatus("Moving...");
 			blockedDirsPath.mkdirs(); // create folder for blocked directories
 			moveDirs();
 			log("Finished moving " + form);
+			setStatus("Finished");
 		}
+		
+		stopWatch.stop();
+		
+		log("Move blacklisted directories duration - " + stopWatch.getTime());
 	}
 	
 	private void moveDirs(){
@@ -103,13 +116,14 @@ public class ModuleMoveBlocked extends MaintenanceModule{
 	
 	class DirectoryFinder extends SimpleFileVisitor<Path>{
 		@Override
-		public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-
+		public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
 			if(stop){
 				return FileVisitResult.TERMINATE;
 			}
 			
-			return super.postVisitDirectory(dir, exc);
+			setStatus("Scanning " + dir.toString());
+			
+			return super.preVisitDirectory(dir, attrs);
 		}
 		
 		@Override
