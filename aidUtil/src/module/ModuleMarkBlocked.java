@@ -41,18 +41,18 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 	LinkedBlockingDeque<Path> pendingFiles = new LinkedBlockingDeque<>();
 	LinkedList<Path> blacklistedDir = new LinkedList<>();
 	
-	DBWorker worker , worker2;
+	Thread worker , worker2, etaTracker;
 	StopWatch stopWatch = new StopWatch();
-	
 	AtomicInteger statHashed = new AtomicInteger(0);
 	
+	// stats
 	int statBlocked, statDir;
 	boolean stop = false;
+	String duration;
 	
 	@Override
 	public void optionPanel(Container container) {
-		// TODO Auto-generated method stub
-
+		info(ModuleMarkBlocked.class.getSimpleName() + "selected");
 	}
 
 	@Override
@@ -62,6 +62,7 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		statBlocked = 0;
 		statDir = 0;
 		stopWatch.reset();
+		duration = "--:--:--";
 		
 		// reset stop flag
 		stop = false;
@@ -80,6 +81,7 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		
 		info("Walking directories...");
 		try {
+			// go find those files...
 			Files.walkFileTree( f.toPath(), new FileHasher());
 		} catch (IOException e) {
 			error("File walk failed");
@@ -87,10 +89,14 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		}
 		
 		info("Starting worker thread...");
+		//TODO needs improving...
 		if(worker != null && worker.isAlive()){
 			error("Worker is already running!");
 			return;
 		}
+		
+		etaTracker = new EtaTracker();
+		etaTracker.start();
 		
 		worker = new DBWorker();
 		worker.start();
@@ -100,16 +106,20 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		
 		while(! pendingFiles.isEmpty()){
 			try {
-				setStatus("Remaining: " + pendingFiles.size());
+				// display some stats while chewing through those files
+				setStatus("Remaining: " + pendingFiles.size() + " / " + duration);
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {}
 		}
 		
 		info("Wating for worker threads to finish...");
 		try{
+			// wait for threads to clear the worklists
 			worker.join();
 			worker2.join();
 		}catch(InterruptedException e){}
+		
+		etaTracker.interrupt(); // don't need this anymore since we are finished
 		
 		info("Moving blacklisted directories...");
 		moveBlacklisted();
@@ -231,6 +241,41 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 				}
 				
 				workList.clear();
+			}
+		}
+	}
+	
+	class EtaTracker extends Thread {
+		int before, after;
+		
+		public EtaTracker(){
+			super("EtaTracker");
+		}
+		
+		@Override
+		public void run() {
+			while(! isInterrupted()){
+				try {
+					before = pendingFiles.size();
+					sleep(20 * 1000);
+					after = pendingFiles.size();
+					
+					if((before - after) <= 0){
+						duration = "--:--:--";
+					}
+					
+					int seconds = (pendingFiles.size() / (before - after)) * 20;
+					
+					int hours = seconds / (60*60);
+					seconds =  seconds - (hours * 60 * 60);
+					int minutes = seconds / 60;
+					seconds = seconds - (minutes * 60);
+					
+					duration = hours + ":" + minutes + ":" + seconds;
+				} catch (InterruptedException e) {
+					interrupt();
+				}
+				
 			}
 		}
 	}
