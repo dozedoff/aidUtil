@@ -27,7 +27,7 @@ import javax.swing.JTextField;
 public abstract class MaintenanceModule {
 	private JTextArea logArea;
 	private ConnectionPool pool;
-	private JTextField path;
+	private JTextField path, status;
 	
 	/**
 	 * Specify a container where modules can add additional components
@@ -88,6 +88,14 @@ public abstract class MaintenanceModule {
 	
 	public void setPathField(JTextField txt){
 		this.path = txt;
+	}
+	
+	public void setStatusField(JTextField status){
+		this.status = status;
+	}
+	
+	public void setStatus(String msg){
+		status.setText(msg);
 	}
 	
 	/**
