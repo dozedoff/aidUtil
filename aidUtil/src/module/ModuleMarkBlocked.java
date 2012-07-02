@@ -40,6 +40,9 @@ import file.BinaryFileReader;
 import file.FileUtil;
 
 public class ModuleMarkBlocked extends MaintenanceModule {
+	final String BLACKLISTED_TAG = "WARNING-";
+	final String BLACKLISTED_DIR = "CHECK";
+	
 	LinkedBlockingDeque<Path> pendingFiles = new LinkedBlockingDeque<>();
 	LinkedList<Path> blacklistedDir = new LinkedList<>();
 	
@@ -180,9 +183,9 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		@Override
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)throws IOException {
 			String filename = file.getFileName().toString();
-			if(! filename.startsWith("WARNING-") && imgFilter.accept(null, filename)){
+			if(! filename.startsWith(BLACKLISTED_TAG) && imgFilter.accept(null, filename)){
 					pendingFiles.add(file);
-			}else if (filename.startsWith("WARNING-")){
+			}else if (filename.startsWith(BLACKLISTED_TAG)){
 				addBlacklisted(file.getParent());
 			}
 			return super.visitFile(file, attrs);
@@ -192,7 +195,7 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 	private void renameFile(Path path, String hash){
 		// create filename with prefix WARNING-{hash}-
 		StringBuilder sb = new StringBuilder();
-		sb.append("WARNING-");
+		sb.append(BLACKLISTED_TAG);
 		sb.append(hash);
 		sb.append("-");
 		sb.append(path.getFileName().toString());
@@ -216,7 +219,7 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 	private void moveBlacklisted(){
 		for(Path p : blacklistedDir){
 			try {
-				FileUtil.moveDirectory(p, p.getRoot().resolve("CHECK"));
+				FileUtil.moveDirectory(p, p.getRoot().resolve(BLACKLISTED_DIR));
 				statDir++;
 			} catch (IOException e) {
 				error("Could not move directory " + p.toString() + " ("+ e.getMessage() + ")");
@@ -296,7 +299,6 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 					
 					duration = String.format(template, hours,minutes,seconds);
 							
-							//%[argument_index$][flags][width][.precision]conversion
 				} catch (InterruptedException e) {
 					interrupt();
 				}
