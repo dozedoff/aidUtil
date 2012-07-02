@@ -17,7 +17,7 @@
  */
 package module;
 
-import hash.DirectoryHasher;
+import file.BinaryFileReader;
 import hash.HashMaker;
 import io.MySQL;
 import io.MySQLtables;
@@ -30,29 +30,52 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.concurrent.LinkedBlockingQueue;
 
-import module.ModuleManageBlacklisted.ImageFilter;
+import javax.swing.ButtonGroup;
+import javax.swing.JRadioButton;
 
 import time.StopWatch;
-import file.BinaryFileReader;
-import file.FileInfo;
 
 public class ModuleManageLists extends MaintenanceModule {
 	StopWatch stopWatch = new StopWatch();
 	MySQL sql;
 	
-	int statHashed = 0;
-	boolean stop = false;
+	private int statHashed = 0;
+	private boolean stop = false;
+	
+	ButtonGroup optionGroup;
+	JRadioButton listDnw, listBlacklist, listArchive, listIndex;
+	
+	public ModuleManageLists(){
+		super();
+		moduleName = "Manage lists";
+	}
 	
 	@Override
 	public void optionPanel(Container container) {
-		// TODO Auto-generated method stub
-
+		optionGroup = new ButtonGroup();
+		
+		listDnw = new JRadioButton("DNW");
+		listArchive = new JRadioButton("Archive");
+		listBlacklist = new JRadioButton("Blacklist");
+		listIndex = new JRadioButton("Index");
+		
+		optionGroup.add(listBlacklist);
+		optionGroup.add(listArchive);
+		optionGroup.add(listDnw);
+		optionGroup.add(listIndex);
+		
+		container.add(listIndex);
+		container.add(listArchive);
+		container.add(listDnw);
+		container.add(listBlacklist);
+		
+		listIndex.setSelected(true);
 	}
 
 	@Override
 	public void start() {
+		enableAllOptions(false);
 		stop = false;
 		statHashed = 0;
 		
@@ -75,12 +98,19 @@ public class ModuleManageLists extends MaintenanceModule {
 		
 		stopWatch.stop();
 		info("Finished processing " + statHashed + " blacklisted files in " + stopWatch.getTime());
+		enableAllOptions(true);
 	}
 
 	@Override
 	public void Cancel() {
-		// TODO Auto-generated method stub
-
+		stop = true;
+	}
+	
+	private void enableAllOptions(boolean enable) {
+		listArchive.setEnabled(enable);
+		listIndex.setEnabled(enable);
+		listDnw.setEnabled(enable);
+		listBlacklist.setEnabled(enable);
 	}
 	
 	class FileHasher extends SimpleFileVisitor<Path>{
@@ -89,17 +119,12 @@ public class ModuleManageLists extends MaintenanceModule {
 		
 		@Override
 		public FileVisitResult preVisitDirectory(Path arg0, BasicFileAttributes arg1) throws IOException {
-			setStatus("Scanning " + arg0.toString());
-			return super.preVisitDirectory(arg0, arg1);
-		}
-		
-		@Override
-		public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
 			if(stop){
 				return FileVisitResult.TERMINATE;
 			}
 			
-			return super.postVisitDirectory(dir, exc);
+			setStatus("Scanning " + arg0.toString());
+			return super.preVisitDirectory(arg0, arg1);
 		}
 		
 		@Override
@@ -107,7 +132,20 @@ public class ModuleManageLists extends MaintenanceModule {
 				String hash = hm.hash(bfr.getViaDataInputStream(file.toFile()));
 				statHashed++;
 				
-				sql.update(hash, MySQLtables.Block);
+				if(listIndex.isSelected()){
+					sql.addHash(hash, file.toString(), file.toFile().length());
+				}else if(listArchive.isSelected()){
+					//TODO implement this
+					error("Function not implemented");
+					return FileVisitResult.TERMINATE;
+				}else if(listDnw.isSelected()){
+					sql.update(hash, MySQLtables.Dnw);
+				}else if(listBlacklist.isSelected()){
+					sql.update(hash, MySQLtables.Block);
+				}else{
+					error("Invalid mode");
+					return FileVisitResult.TERMINATE;
+				}
 			return super.visitFile(file, attrs);
 		}
 	}
