@@ -42,7 +42,7 @@ import file.FileUtil;
 public class ModuleMarkBlocked extends MaintenanceModule {
 	final String BLACKLISTED_TAG = "WARNING-";
 	final String BLACKLISTED_DIR = "CHECK";
-	
+
 	LinkedBlockingDeque<Path> pendingFiles = new LinkedBlockingDeque<>();
 	LinkedList<Path> blacklistedDir = new LinkedList<>();
 	
@@ -57,6 +57,11 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 	int statBlocked, statDir;
 	boolean stop = false;
 	String duration;
+	
+	public ModuleMarkBlocked() {
+		super();
+		moduleName = "Manage Blacklisted";
+	}
 	
 	@Override
 	public void optionPanel(Container container) {

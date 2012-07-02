@@ -28,6 +28,7 @@ public abstract class MaintenanceModule {
 	private JTextArea logArea;
 	private ConnectionPool pool;
 	private JTextField path, status;
+	protected String moduleName;
 	
 	/**
 	 * Specify a container where modules can add additional components
@@ -98,6 +99,19 @@ public abstract class MaintenanceModule {
 		status.setText(msg);
 	}
 	
+	/**
+	 * Returns the module name. If no name is set, the classname
+	 * without the "Module" prefix is used.
+	 * @return the module name
+	 */
+	public String getModuleName() {
+		if(moduleName == null){
+			return this.getClass().getSimpleName().substring(6); // "ModuleFooBar" will return "FooBar"
+		}else{
+			return moduleName;
+		}
+	}
+
 	/**
 	 * Add a message to the log window.
 	 * @param msg message to add
