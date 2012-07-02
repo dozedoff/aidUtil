@@ -33,6 +33,8 @@ import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.swing.JCheckBox;
+
 import time.StopWatch;
 import file.BinaryFileReader;
 import file.FileUtil;
@@ -45,6 +47,9 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 	StopWatch stopWatch = new StopWatch();
 	AtomicInteger statHashed = new AtomicInteger(0);
 	
+	// GUI
+	JCheckBox onlyMoveTagged = new JCheckBox();
+	
 	// stats
 	int statBlocked, statDir;
 	boolean stop = false;
@@ -53,6 +58,9 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 	@Override
 	public void optionPanel(Container container) {
 		info(ModuleMarkBlocked.class.getSimpleName() + "selected");
+		
+		onlyMoveTagged.setText("Move only (no hashing)");
+		container.add(onlyMoveTagged);
 	}
 
 	@Override
@@ -63,6 +71,8 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		statDir = 0;
 		stopWatch.reset();
 		duration = "--:--:--";
+		
+		boolean onlyMove = onlyMoveTagged.isSelected();
 		
 		// reset stop flag
 		stop = false;
@@ -88,6 +98,27 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 			e.printStackTrace();
 		}
 		
+		// do not start blacklist related stuff if we are only moving files
+		if(! onlyMove){
+			lookForBlacklisted();
+		}
+		
+		info("Moving blacklisted directories...");
+		moveBlacklisted();
+		
+		stopWatch.stop();
+		
+		info("Blocked files marking done. " + statHashed +" files hashed, " + statBlocked +" blacklisted files found, " + statDir + " blacklisted Directories moved.");
+		info("Mark blacklisted run duration - " + stopWatch.getTime());
+		
+		setStatus("Finished");
+	}
+	
+	/**
+	 * Start the threads needed for hashing files and database lookups.
+	 * Will wait for the threads to die before returning.
+	 */
+	private void lookForBlacklisted(){
 		info("Starting worker thread...");
 		//TODO needs improving...
 		if(worker != null && worker.isAlive()){
@@ -111,7 +142,7 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {}
 		}
-		
+	
 		info("Wating for worker threads to finish...");
 		try{
 			// wait for threads to clear the worklists
@@ -120,16 +151,6 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 		}catch(InterruptedException e){}
 		
 		etaTracker.interrupt(); // don't need this anymore since we are finished
-		
-		info("Moving blacklisted directories...");
-		moveBlacklisted();
-		
-		stopWatch.stop();
-		
-		info("Blocked files marking done. " + statHashed +" files hashed, " + statBlocked +" blacklisted files found, " + statDir + " blacklisted Directories moved.");
-		info("Mark blacklisted run duration - " + stopWatch.getTime());
-		
-		setStatus("Finished");
 	}
 
 	@Override
