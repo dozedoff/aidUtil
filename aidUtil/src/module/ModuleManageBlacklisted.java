@@ -39,7 +39,7 @@ import time.StopWatch;
 import file.BinaryFileReader;
 import file.FileUtil;
 
-public class ModuleMarkBlocked extends MaintenanceModule {
+public class ModuleManageBlacklisted extends MaintenanceModule {
 	final String BLACKLISTED_TAG = "WARNING-";
 	final String BLACKLISTED_DIR = "CHECK";
 
@@ -58,14 +58,14 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 	boolean stop = false;
 	String duration;
 	
-	public ModuleMarkBlocked() {
+	public ModuleManageBlacklisted() {
 		super();
 		moduleName = "Manage Blacklisted";
 	}
 	
 	@Override
 	public void optionPanel(Container container) {
-		info(ModuleMarkBlocked.class.getSimpleName() + "selected");
+		info(ModuleManageBlacklisted.class.getSimpleName() + "selected");
 		
 		onlyMoveTagged.setText("Move only (no hashing)");
 		container.add(onlyMoveTagged);

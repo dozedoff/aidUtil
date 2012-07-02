@@ -32,13 +32,13 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import module.ModuleMarkBlocked.ImageFilter;
+import module.ModuleManageBlacklisted.ImageFilter;
 
 import time.StopWatch;
 import file.BinaryFileReader;
 import file.FileInfo;
 
-public class ModuleAddBlacklisted extends MaintenanceModule {
+public class ModuleManageLists extends MaintenanceModule {
 	StopWatch stopWatch = new StopWatch();
 	MySQL sql;
 	
