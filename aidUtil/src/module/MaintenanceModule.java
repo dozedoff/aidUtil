@@ -111,7 +111,7 @@ public abstract class MaintenanceModule {
 	
 	public final void info(String msg){
 		if(logArea != null){
-			logArea.append("[Inf] "+msg+System.lineSeparator());
+			logArea.append("[INF] "+msg+System.lineSeparator());
 		}
 	}
 	

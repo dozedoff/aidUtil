@@ -271,7 +271,11 @@ public class ModuleMarkBlocked extends MaintenanceModule {
 					int minutes = seconds / 60;
 					seconds = seconds - (minutes * 60);
 					
-					duration = hours + ":" + minutes + ":" + seconds;
+					final String template = "%1$02d:%2$02d:%3$02d"; //  hours:minutes:seconds , with leading zero if necessary 
+					
+					duration = String.format(template, hours,minutes,seconds);
+							
+							//%[argument_index$][flags][width][.precision]conversion
 				} catch (InterruptedException e) {
 					interrupt();
 				}
