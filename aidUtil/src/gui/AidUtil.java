@@ -76,7 +76,7 @@ public class AidUtil extends JFrame implements ActionListener{
 		
 		// add modules to menu
 		for(MaintenanceModule mm : modules){
-			JMenuItem jmi = new JMenuItem(mm.getClass().getSimpleName());
+			JMenuItem jmi = new JMenuItem(mm.getClass().getSimpleName().substring(6));
 			jmi.addActionListener(this);
 			moduleMenu.add(jmi);
 			guiModelMap.put(jmi, mm);
@@ -120,6 +120,9 @@ public class AidUtil extends JFrame implements ActionListener{
 		// set TextFields
 		module.setPathField(targetPath);
 		module.setStatusField(status);
+		
+		// change window title
+		this.setTitle("AidUtil - " + module.getClass().getSimpleName().substring(6));
 		
 		// assign module methods to buttons
 		start.addActionListener(new ActionListener() {
