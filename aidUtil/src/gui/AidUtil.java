@@ -122,7 +122,7 @@ public class AidUtil extends JFrame implements ActionListener{
 		module.setStatusField(status);
 		
 		// change window title
-		this.setTitle("AidUtil - " + module.getClass().getSimpleName().substring(6));
+		this.setTitle("AidUtil - " + module.getModuleName());
 		
 		// assign module methods to buttons
 		start.addActionListener(new ActionListener() {

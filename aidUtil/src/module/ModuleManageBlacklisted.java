@@ -212,7 +212,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 			error("Could not move file " + path.toString() + " ("+ e.getMessage() + ")");
 			e.printStackTrace();
 		}
-		info("Blacklisted file found in " + path.getParent().toString());
+		warning("Blacklisted file found in " + path.getParent().toString());
 	}
 	
 	private void addBlacklisted(Path path){
