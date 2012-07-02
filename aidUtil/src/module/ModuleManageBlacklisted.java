@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -274,11 +275,24 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		}
 	}
 	
+	/**
+	 * This thread calculates the estimated time remaining until
+	 * the task is complete.
+	 */
 	class EtaTracker extends Thread {
 		int before, after;
+		final int POLL_INTERVALL = 5;
+		final int WINDOW_SIZE = 12;
+		
+		LinkedList<Integer> window = new LinkedList<>();
 		
 		public EtaTracker(){
 			super("EtaTracker");
+			
+			// init window
+			for(int i=0; i<WINDOW_SIZE; i++){
+				window.add(0);
+			}
 		}
 		
 		@Override
@@ -286,29 +300,51 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 			while(! isInterrupted()){
 				try {
 					before = pendingFiles.size();
-					sleep(20 * 1000);
+					sleep(POLL_INTERVALL * 1000);
 					after = pendingFiles.size();
 					
-					if((before - after) <= 0){
+					int delta = before - after;
+					
+					// invalid value
+					if(delta <= 0){
 						duration = "--:--:--";
+						continue;
 					}
 					
-					int seconds = (pendingFiles.size() / (before - after)) * 20;
+					window.pop();
+					window.add(delta);
 					
-					int hours = seconds / (60*60);
-					seconds =  seconds - (hours * 60 * 60);
-					int minutes = seconds / 60;
-					seconds = seconds - (minutes * 60);
-					
-					final String template = "%1$02d:%2$02d:%3$02d"; //  hours:minutes:seconds , with leading zero if necessary 
-					
-					duration = String.format(template, hours,minutes,seconds);
+					calcTime();
 							
 				} catch (InterruptedException e) {
 					interrupt();
 				}
 				
 			}
+		}
+		
+		private void calcTime(){
+			int count = 0, mean = 0;
+			
+			for(int i : window){
+				if(i > 0){
+					mean += i;
+					count++;
+				}
+			}
+			
+			mean = mean / count;
+			
+			int seconds = (pendingFiles.size() / mean) * POLL_INTERVALL;
+			
+			int hours = seconds / (60*60);
+			seconds =  seconds - (hours * 60 * 60);
+			int minutes = seconds / 60;
+			seconds = seconds - (minutes * 60);
+			
+			final String template = "%1$02d:%2$02d:%3$02d"; //  hours:minutes:seconds , with leading zero if necessary 
+			
+			duration = String.format(template, hours,minutes,seconds);
 		}
 	}
 	
