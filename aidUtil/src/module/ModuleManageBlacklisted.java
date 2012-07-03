@@ -29,9 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.JCheckBox;
@@ -44,12 +42,12 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	final String BLACKLISTED_TAG = "WARNING-";
 	final String BLACKLISTED_DIR = "CHECK";
 
-	LinkedBlockingDeque<Path> pendingFiles = new LinkedBlockingDeque<>();
+	LinkedList<Path> pendingFiles = new LinkedList<>();
 	LinkedList<Path> blacklistedDir = new LinkedList<>();
 	
-	Thread worker , worker2, etaTracker;
+	Thread worker, etaTracker;
 	StopWatch stopWatch = new StopWatch();
-	AtomicInteger statHashed = new AtomicInteger(0);
+	int statHashed = 0;
 	
 	// GUI
 	JCheckBox onlyMoveTagged = new JCheckBox();
@@ -75,7 +73,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	@Override
 	public void start() {
 		// reset stats
-		statHashed.set(0);
+		statHashed = 0;
 		statBlocked = 0;
 		statDir = 0;
 		stopWatch.reset();
@@ -141,9 +139,6 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		worker = new DBWorker();
 		worker.start();
 		
-		worker2 = new DBWorker();
-		worker2.start();
-		
 		while(! pendingFiles.isEmpty()){
 			try {
 				// display some stats while chewing through those files
@@ -156,7 +151,6 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		try{
 			// wait for threads to clear the worklists
 			worker.join();
-			worker2.join();
 		}catch(InterruptedException e){}
 		
 		etaTracker.interrupt(); // don't need this anymore since we are finished
@@ -165,7 +159,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	@Override
 	public void Cancel() {
 		stop = true;
-		pendingFiles.clear();
+		worker.interrupt();
 	}
 	
 	class FileHasher extends SimpleFileVisitor<Path>{
@@ -234,7 +228,6 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	}
 	
 	class DBWorker extends Thread {
-		LinkedList<Path> workList = new LinkedList<>();
 		MySQL sql = new MySQL(getConnectionPool());
 		
 		BinaryFileReader bfr = new BinaryFileReader();
@@ -247,30 +240,26 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		@Override
 		public void run() {
 			while(! isInterrupted() && (! pendingFiles.isEmpty())){
-				pendingFiles.drainTo(workList,200); // get work
-				
-				for(Path p : workList){
-					String hash;
-					try {
-						// read & hash file
-						hash = hm.hash(bfr.getViaDataInputStream(p.toFile()));
-						
-						// track stats
-						statHashed.incrementAndGet();
-						
-						// see if any files are blacklisted
-						if(sql.isBlacklisted(hash)){
-							statBlocked++;
-							renameFile(p, hash);
-							addBlacklisted(p.getParent());
-						}
-					} catch (IOException e) {
-						error("Failed to process " + p.toString() + " (" + e.getMessage() + ")");
-						e.printStackTrace();
+				String hash;
+				Path p = pendingFiles.remove();
+
+				try {
+					// read & hash file
+					hash = hm.hash(bfr.getViaDataInputStream(p.toFile()));
+
+					// track stats
+					statHashed++;
+
+					// see if any files are blacklisted
+					if(sql.isBlacklisted(hash)){
+						statBlocked++;
+						renameFile(p, hash);
+						addBlacklisted(p.getParent());
 					}
+				} catch (IOException e) {
+					error("Failed to process " + p.toString() + " (" + e.getMessage() + ")");
+					e.printStackTrace();
 				}
-				
-				workList.clear();
 			}
 		}
 	}
