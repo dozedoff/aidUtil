@@ -30,22 +30,29 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.JCheckBox;
 
 import time.StopWatch;
 import file.BinaryFileReader;
+import file.FileInfo;
 import file.FileUtil;
 
 public class ModuleManageBlacklisted extends MaintenanceModule {
 	final String BLACKLISTED_TAG = "WARNING-";
 	final String BLACKLISTED_DIR = "CHECK";
+	final int WORKERS = 2; // number of threads hashing data and communicating with the DB
+	final int FILE_QUEUE_SIZE = 100; // setting this too high will probably result in "out of memory" errors
 
 	LinkedList<Path> pendingFiles = new LinkedList<>();
 	LinkedList<Path> blacklistedDir = new LinkedList<>();
-	
-	Thread worker, etaTracker;
+	LinkedBlockingQueue<FileData> dataQueue = new LinkedBlockingQueue<>(FILE_QUEUE_SIZE);
+
+	Thread worker[] = new Thread[WORKERS], producer, etaTracker;
 	StopWatch stopWatch = new StopWatch();
 	int statHashed = 0;
 	
@@ -84,8 +91,10 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		// reset stop flag
 		stop = false;
 		
-		// clear list
+		// clear lists
 		blacklistedDir.clear();
+		pendingFiles.clear();
+		dataQueue.clear();
 		
 		File f = new File(getPath());
 		
@@ -127,17 +136,17 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	 */
 	private void lookForBlacklisted(){
 		info("Starting worker thread...");
-		//TODO needs improving...
-		if(worker != null && worker.isAlive()){
-			error("Worker is already running!");
-			return;
-		}
+		
+		producer = new DataProducer();
+		producer.start();
 		
 		etaTracker = new EtaTracker();
 		etaTracker.start();
 		
-		worker = new DBWorker();
-		worker.start();
+		for(Thread t : worker){
+			t = new DBWorker();
+			t.start();
+		}
 		
 		while(! pendingFiles.isEmpty()){
 			try {
@@ -149,8 +158,14 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	
 		info("Wating for worker threads to finish...");
 		try{
+			producer.join();
+			
 			// wait for threads to clear the worklists
-			worker.join();
+			for(Thread t : worker){
+				if(t != null){
+					try{t.join();}catch(InterruptedException ie){}
+				}
+			}
 		}catch(InterruptedException e){}
 		
 		etaTracker.interrupt(); // don't need this anymore since we are finished
@@ -159,7 +174,14 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	@Override
 	public void Cancel() {
 		stop = true;
-		worker.interrupt();
+		producer.interrupt();
+		pendingFiles.clear();
+		
+		for(Thread t : worker){
+			if(t != null){
+				t.interrupt();
+			}
+		}
 	}
 	
 	class FileHasher extends SimpleFileVisitor<Path>{
@@ -227,38 +249,69 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		}
 	}
 	
-	class DBWorker extends Thread {
-		MySQL sql = new MySQL(getConnectionPool());
-		
+	class DataProducer extends Thread {
 		BinaryFileReader bfr = new BinaryFileReader();
-		HashMaker hm = new HashMaker();
 		
-		public DBWorker(){
-			super("DBWorker");
+		public DataProducer(){
+			super("Data Producer");
 		}
 		
 		@Override
 		public void run() {
 			while(! isInterrupted() && (! pendingFiles.isEmpty())){
-				String hash;
 				Path p = pendingFiles.remove();
 
 				try {
-					// read & hash file
-					hash = hm.hash(bfr.getViaDataInputStream(p.toFile()));
-
+					try {
+						dataQueue.put(new FileData(p, bfr.get(p.toFile())));
+					} catch (InterruptedException e) {
+						interrupt();
+					}
+				} catch (IOException e) {
+					error("Failed to read " + e.getMessage());
+				}
+			}
+		}
+	}
+	
+	class FileData{
+		final byte[] data;
+		final Path file;
+		
+		public FileData(Path file, byte[] data) {
+			this.file = file;
+			this.data = data;
+		}
+	}
+	
+	class DBWorker extends Thread{
+		MySQL sql = new MySQL(getConnectionPool());
+		HashMaker hm = new HashMaker();
+		
+		public DBWorker(){
+			super("DB Worker");
+		}
+		
+		@Override
+		public void run() {
+			while((! isInterrupted()) && (producer.isAlive() || (! dataQueue.isEmpty()))){
+				String hash;
+				FileData fd;
+				
+				try {
+					fd = dataQueue.take();
+					hash = hm.hash(fd.data);
 					// track stats
 					statHashed++;
 
 					// see if any files are blacklisted
 					if(sql.isBlacklisted(hash)){
 						statBlocked++;
-						renameFile(p, hash);
-						addBlacklisted(p.getParent());
+						renameFile(fd.file, hash);
+						addBlacklisted(fd.file.getParent());
 					}
-				} catch (IOException e) {
-					error("Failed to process " + p.toString() + " (" + e.getMessage() + ")");
-					e.printStackTrace();
+				} catch (InterruptedException e) {
+					interrupt();
 				}
 			}
 		}
