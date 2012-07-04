@@ -18,7 +18,7 @@
 package module;
 
 import hash.HashMaker;
-import io.MySQL;
+import io.AidDAO;
 
 import java.awt.Container;
 import java.awt.Dimension;
@@ -308,7 +308,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	}
 	
 	class DBWorker extends Thread{
-		MySQL sql = new MySQL(getConnectionPool());
+		AidDAO sql = new AidDAO(getConnectionPool());
 		HashMaker hm = new HashMaker();
 		
 		public DBWorker(){

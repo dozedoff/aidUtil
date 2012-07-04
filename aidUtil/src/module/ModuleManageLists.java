@@ -19,8 +19,8 @@ package module;
 
 import file.BinaryFileReader;
 import hash.HashMaker;
-import io.MySQL;
-import io.MySQLtables;
+import io.AidDAO;
+import io.AidTables;
 
 import java.awt.Container;
 import java.io.File;
@@ -38,7 +38,7 @@ import time.StopWatch;
 
 public class ModuleManageLists extends MaintenanceModule {
 	StopWatch stopWatch = new StopWatch();
-	MySQL sql;
+	AidDAO sql;
 	
 	private int statHashed = 0;
 	private boolean stop = false;
@@ -79,7 +79,7 @@ public class ModuleManageLists extends MaintenanceModule {
 		stop = false;
 		statHashed = 0;
 		
-		sql = new MySQL(getConnectionPool());
+		sql = new AidDAO(getConnectionPool());
 		
 		File path = new File(getPath());
 		
@@ -139,9 +139,9 @@ public class ModuleManageLists extends MaintenanceModule {
 					error("Function not implemented");
 					return FileVisitResult.TERMINATE;
 				}else if(listDnw.isSelected()){
-					sql.update(hash, MySQLtables.Dnw);
+					sql.update(hash, AidTables.Dnw);
 				}else if(listBlacklist.isSelected()){
-					sql.update(hash, MySQLtables.Block);
+					sql.update(hash, AidTables.Block);
 				}else{
 					error("Invalid mode");
 					return FileVisitResult.TERMINATE;
