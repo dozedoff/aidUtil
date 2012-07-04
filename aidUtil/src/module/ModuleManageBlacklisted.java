@@ -21,6 +21,7 @@ import hash.HashMaker;
 import io.MySQL;
 
 import java.awt.Container;
+import java.awt.Dimension;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -36,6 +37,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.JCheckBox;
+import javax.swing.JProgressBar;
+
+import com.mysql.jdbc.UpdatableResultSet;
 
 import time.StopWatch;
 import file.BinaryFileReader;
@@ -54,10 +58,11 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 
 	Thread worker[] = new Thread[WORKERS], producer, etaTracker;
 	StopWatch stopWatch = new StopWatch();
-	int statHashed = 0;
+	volatile int statHashed = 0;
 	
 	// GUI
 	JCheckBox onlyMoveTagged = new JCheckBox();
+	JProgressBar progressBar = new JProgressBar();
 	
 	// stats
 	int statBlocked, statDir;
@@ -75,6 +80,10 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		
 		onlyMoveTagged.setText("Move only (no hashing)");
 		container.add(onlyMoveTagged);
+		
+		progressBar.setPreferredSize(new Dimension(200, 30));
+		progressBar.setStringPainted(true);
+		container.add(progressBar);
 	}
 
 	@Override
@@ -142,6 +151,8 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		
 		etaTracker = new EtaTracker();
 		etaTracker.start();
+
+		progressBar.setMaximum(pendingFiles.size());
 		
 		for(Thread t : worker){
 			t = new DBWorker();
@@ -151,7 +162,8 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		while(! pendingFiles.isEmpty()){
 			try {
 				// display some stats while chewing through those files
-				setStatus("Remaining: " + pendingFiles.size() + " / " + duration);
+				setStatus("Time remaining:  " + duration);
+				progressBar.setValue(statHashed);
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {}
 		}
@@ -341,30 +353,41 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		public void run() {
 			while(! isInterrupted()){
 				try {
-					before = pendingFiles.size();
-					sleep(POLL_INTERVALL * 1000);
-					after = pendingFiles.size();
-					
-					int delta = before - after;
-					
-					// invalid value
-					if(delta <= 0){
-						duration = "--:--:--";
-						continue;
-					}
-					
-					window.pop();
-					window.add(delta);
-					
+					pollDelta();
 					calcTime();
-							
+					updateGUI();
 				} catch (InterruptedException e) {
 					interrupt();
 				}
 				
 			}
+			
+			updateGUI();
 		}
 		
+		private void pollDelta() throws InterruptedException{
+			before = pendingFiles.size();
+			sleep(POLL_INTERVALL * 1000);
+			after = pendingFiles.size();
+			
+			int delta = before - after;
+			
+			// invalid value
+			if(delta <= 0){
+				duration = "--:--:--";
+				return;
+			}
+			
+			window.pop();
+			window.add(delta);
+		}
+		
+		private void updateGUI() {
+			// display some stats while chewing through those files
+			setStatus("Time remaining:  " + duration);
+			progressBar.setValue(statHashed);
+		}
+
 		private void calcTime(){
 			int count = 0, mean = 0;
 			
