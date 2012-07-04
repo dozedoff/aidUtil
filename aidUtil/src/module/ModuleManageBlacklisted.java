@@ -201,6 +201,11 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		
 		@Override
 		public FileVisitResult preVisitDirectory(Path arg0, BasicFileAttributes arg1) throws IOException {
+			// don't go there...
+			if(arg0.getFileName().toString().equals("$Recycle.Bin")){
+				return FileVisitResult.SKIP_SUBTREE;
+			}
+			
 			setStatus("Scanning " + arg0.toString());
 			return super.preVisitDirectory(arg0, arg1);
 		}
@@ -212,6 +217,12 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 			}
 			
 			return super.postVisitDirectory(dir, exc);
+		}
+		
+		@Override
+		public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+			error("Could not read file: " + exc.getMessage());
+			return FileVisitResult.CONTINUE;
 		}
 		
 		@Override
