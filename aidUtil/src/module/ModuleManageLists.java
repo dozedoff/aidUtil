@@ -44,7 +44,7 @@ public class ModuleManageLists extends MaintenanceModule {
 	private boolean stop = false;
 	
 	ButtonGroup optionGroup;
-	JRadioButton listDnw, listBlacklist, listArchive, listIndex;
+	JRadioButton listDnw, listBlacklist;
 	
 	public ModuleManageLists(){
 		super();
@@ -56,21 +56,13 @@ public class ModuleManageLists extends MaintenanceModule {
 		optionGroup = new ButtonGroup();
 		
 		listDnw = new JRadioButton("DNW");
-		listArchive = new JRadioButton("Archive");
 		listBlacklist = new JRadioButton("Blacklist");
-		listIndex = new JRadioButton("Index");
 		
 		optionGroup.add(listBlacklist);
-		optionGroup.add(listArchive);
 		optionGroup.add(listDnw);
-		optionGroup.add(listIndex);
 		
-		container.add(listIndex);
-		container.add(listArchive);
 		container.add(listDnw);
 		container.add(listBlacklist);
-		
-		listIndex.setSelected(true);
 	}
 
 	@Override
@@ -107,8 +99,6 @@ public class ModuleManageLists extends MaintenanceModule {
 	}
 	
 	private void enableAllOptions(boolean enable) {
-		listArchive.setEnabled(enable);
-		listIndex.setEnabled(enable);
 		listDnw.setEnabled(enable);
 		listBlacklist.setEnabled(enable);
 	}
@@ -132,13 +122,7 @@ public class ModuleManageLists extends MaintenanceModule {
 				String hash = hm.hash(bfr.getViaDataInputStream(file.toFile()));
 				statHashed++;
 				
-				if(listIndex.isSelected()){
-					sql.addIndex(hash, file.toString(), file.toFile().length());
-				}else if(listArchive.isSelected()){
-					//TODO implement this
-					error("Function not implemented");
-					return FileVisitResult.TERMINATE;
-				}else if(listDnw.isSelected()){
+				if(listDnw.isSelected()){
 					sql.update(hash, AidTables.Dnw);
 				}else if(listBlacklist.isSelected()){
 					sql.update(hash, AidTables.Block);
