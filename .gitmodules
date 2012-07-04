@@ -1,3 +1,6 @@
 [submodule "aidUtil/common"]
 	path = aidUtil/common
 	url = git@github.com:dozedoff/common.git
+[submodule "aidUtil/aid"]
+	path = aidUtil/aid
+	url = git@github.com:dozedoff/aid.git
