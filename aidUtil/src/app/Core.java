@@ -46,7 +46,7 @@ public class Core {
 			dbProps.load(Core.class.getResourceAsStream("db.properties"));
 			
 			// create connection pool
-			connPool = new BoneConnectionPool(dbProps,3);
+			connPool = new BoneConnectionPool(dbProps,5);
 			connPool.startPool();
 		} catch (Exception e) {
 			e.printStackTrace();

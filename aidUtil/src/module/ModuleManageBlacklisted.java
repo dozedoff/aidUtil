@@ -63,6 +63,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	Thread worker[] = new Thread[WORKERS], producer, etaTracker;
 	StopWatch stopWatch = new StopWatch();
 	volatile int statHashed = 0;
+	String locationTag = null;
 	
 	// GUI
 	JPanel panelBlacklist = new JPanel();
@@ -138,6 +139,8 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		progressBar.setPreferredSize(new Dimension(200, 30));
 		progressBar.setStringPainted(true);
 		container.add(progressBar);
+		
+		container.repaint();
 	}
 
 	@Override
@@ -149,7 +152,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		stopWatch.reset();
 		duration = "--:--:--";
 		
-		String locationTag = null;
+		locationTag = null;
 		
 		// reset stop flag
 		stop = false;
@@ -261,7 +264,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		@Override
 		public FileVisitResult preVisitDirectory(Path arg0, BasicFileAttributes arg1) throws IOException {
 			// don't go there...
-			if(arg0.getFileName().toString().equals("$Recycle.Bin")){
+			if((arg0.getFileName() != null) && arg0.getFileName().toString().equals("$Recycle.Bin")){
 				return FileVisitResult.SKIP_SUBTREE;
 			}
 			
@@ -378,6 +381,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		public void run() {
 			boolean blc = blCheck.isSelected();
 			boolean index = indexCheck.isSelected();
+			boolean dnw = dnwCheck.isSelected();
 			
 			while((! isInterrupted()) && (producer.isAlive() || (! dataQueue.isEmpty()))){
 				String hash;
@@ -394,6 +398,36 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 						statBlocked++;
 						renameFile(fd.file, hash);
 						addBlacklisted(fd.file.getParent());
+						continue;
+					}
+					
+					// see if there are any DNW files
+					if(dnw && sql.isDnw(hash)){
+						if(dnwLog.isSelected()){
+							info("Found DNW " + fd.toString());
+						}else if(dnwDelete.isSelected()){
+							try {
+								Files.delete(fd.file);
+								info("Deleted DNW " + fd.file.toString());
+							} catch (IOException e) {
+								error("Failed to delete DNW " + fd.file.toString());
+							}
+						}else if(dnwMove.isSelected()){
+							try {
+								Files.move(fd.file, fd.file.getRoot().resolve("DNW").resolve(fd.file.getFileName()));
+								info("Moved DNW " + fd.file.toString() + " to " + fd.file.getRoot().resolve("DNW").toString());
+							} catch (IOException e) {
+								error("Failed to move DNW " + fd.file.toString());
+							}
+						}
+						
+						continue;
+					}
+					
+					//index the file
+					if(index){
+						File f = fd.file.toFile();
+						sql.addIndex(hash, f.toString(), f.length(), locationTag);
 					}
 				} catch (InterruptedException e) {
 					interrupt();
