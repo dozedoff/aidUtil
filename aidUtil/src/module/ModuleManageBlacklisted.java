@@ -22,6 +22,8 @@ import io.AidDAO;
 
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -33,8 +35,14 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
+import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JRadioButton;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import time.StopWatch;
 import util.LocationTag;
@@ -57,7 +65,21 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	volatile int statHashed = 0;
 	
 	// GUI
-	JCheckBox onlyMoveTagged = new JCheckBox();
+	JPanel panelBlacklist = new JPanel();
+	JPanel panelDnw = new JPanel();
+	JPanel panelIndex = new JPanel();
+	
+	JCheckBox blMoveTagged = new JCheckBox("Move only (no hashing)");
+	JCheckBox blCheck = new JCheckBox("Check for blacklisted");
+	
+	JCheckBox dnwCheck = new JCheckBox("Check for DNW");
+	JRadioButton dnwMove = new JRadioButton("Move DNW");
+	JRadioButton dnwDelete = new JRadioButton("Delete DNW");
+	JRadioButton dnwLog = new JRadioButton("Log DNW");
+	ButtonGroup dnwGroup = new ButtonGroup();
+	
+	JCheckBox indexCheck = new JCheckBox("Index files");
+	
 	JProgressBar progressBar = new JProgressBar();
 	
 	// stats
@@ -72,10 +94,46 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	
 	@Override
 	public void optionPanel(Container container) {
-		info(ModuleManageBlacklisted.class.getSimpleName() + "selected");
+		panelBlacklist.add(blCheck);
+		panelBlacklist.add(blMoveTagged);
+		panelBlacklist.setBorder(BorderFactory.createTitledBorder("Blacklist"));
+		container.add(panelBlacklist);
 		
-		onlyMoveTagged.setText("Move only (no hashing)");
-		container.add(onlyMoveTagged);
+		panelDnw.add(dnwCheck);
+
+		
+		//TODO not working...
+		// disable buttons when not in use
+		dnwCheck.addChangeListener(new ChangeListener() {
+			JRadioButton buttons[] = {dnwMove, dnwDelete, dnwLog};
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				if(dnwCheck.isSelected()){
+					for(JRadioButton b : buttons){
+						b.setEnabled(true);
+					}
+				}else{
+					for(JRadioButton b : buttons){
+						b.setEnabled(true);
+					}
+				}
+			}
+		});
+		
+		dnwGroup.add(dnwMove);
+		dnwGroup.add(dnwLog);
+		dnwGroup.add(dnwDelete);
+		dnwLog.setSelected(true);
+		
+		panelDnw.add(dnwMove);
+		panelDnw.add(dnwDelete);
+		panelDnw.add(dnwLog);
+		panelDnw.setBorder(BorderFactory.createTitledBorder("DNW"));
+		container.add(panelDnw);
+		
+		panelIndex.add(indexCheck);
+		panelIndex.setBorder(BorderFactory.createTitledBorder("Index"));
+		container.add(panelIndex);
 		
 		progressBar.setPreferredSize(new Dimension(200, 30));
 		progressBar.setStringPainted(true);
@@ -91,7 +149,6 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		stopWatch.reset();
 		duration = "--:--:--";
 		
-		boolean onlyMove = onlyMoveTagged.isSelected();
 		String locationTag = null;
 		
 		// reset stop flag
@@ -126,13 +183,12 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 			e.printStackTrace();
 		}
 		
-		// do not start blacklist related stuff if we are only moving files
-		if(! onlyMove){
-			lookForBlacklisted();
+		lookForBlacklisted();
+
+		if(blMoveTagged.isSelected()){
+			info("Moving blacklisted directories...");
+			moveBlacklisted();
 		}
-		
-		info("Moving blacklisted directories...");
-		moveBlacklisted();
 		
 		stopWatch.stop();
 		
@@ -320,6 +376,9 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		
 		@Override
 		public void run() {
+			boolean blc = blCheck.isSelected();
+			boolean index = indexCheck.isSelected();
+			
 			while((! isInterrupted()) && (producer.isAlive() || (! dataQueue.isEmpty()))){
 				String hash;
 				FileData fd;
@@ -331,7 +390,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 					statHashed++;
 
 					// see if any files are blacklisted
-					if(sql.isBlacklisted(hash)){
+					if(blc && sql.isBlacklisted(hash)){
 						statBlocked++;
 						renameFile(fd.file, hash);
 						addBlacklisted(fd.file.getParent());
