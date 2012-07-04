@@ -31,24 +31,20 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.JCheckBox;
 import javax.swing.JProgressBar;
 
-import com.mysql.jdbc.UpdatableResultSet;
-
 import time.StopWatch;
+import util.LocationTag;
 import file.BinaryFileReader;
-import file.FileInfo;
 import file.FileUtil;
 
 public class ModuleManageBlacklisted extends MaintenanceModule {
 	final String BLACKLISTED_TAG = "WARNING-";
 	final String BLACKLISTED_DIR = "CHECK";
+	
 	final int WORKERS = 2; // number of threads hashing data and communicating with the DB
 	final int FILE_QUEUE_SIZE = 100; // setting this too high will probably result in "out of memory" errors
 
@@ -96,6 +92,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		duration = "--:--:--";
 		
 		boolean onlyMove = onlyMoveTagged.isSelected();
+		String locationTag = null;
 		
 		// reset stop flag
 		stop = false;
@@ -112,12 +109,18 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 			return;
 		}
 		
+		locationTag = checkTag(f.toPath());
+		
+		if(locationTag == null){
+			return;
+		}
+		
 		stopWatch.start();
 		
 		info("Walking directories...");
 		try {
 			// go find those files...
-			Files.walkFileTree( f.toPath(), new FileHasher());
+			Files.walkFileTree( f.toPath(), new ImageVisitor());
 		} catch (IOException e) {
 			error("File walk failed");
 			e.printStackTrace();
@@ -196,7 +199,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		}
 	}
 	
-	class FileHasher extends SimpleFileVisitor<Path>{
+	class ImageVisitor extends SimpleFileVisitor<Path>{
 		ImageFilter imgFilter = new ImageFilter();
 		
 		@Override

@@ -17,12 +17,17 @@
  */
 package module;
 
+import io.AidDAO;
 import io.ConnectionPool;
 
 import java.awt.Container;
+import java.nio.file.Path;
+import java.util.LinkedList;
 
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+
+import util.LocationTag;
 
 public abstract class MaintenanceModule {
 	private JTextArea logArea;
@@ -139,6 +144,29 @@ public abstract class MaintenanceModule {
 		if(logArea != null){
 			logArea.append("[ERR] "+msg+System.lineSeparator());
 		}
+	}
+	
+	protected String checkTag(Path path){
+		String locationTag = null;
+		LinkedList<String> tags = LocationTag.findTags(path);
+		
+		if(tags.size() > 1){
+			error("More than one location tag found");
+			return null;
+		}else if(tags.size() == 0){
+			error("No location tag found");
+			return null;
+		}
+		
+		locationTag = tags.getFirst();
+		tags = null;
+		
+		if( ! new AidDAO(getConnectionPool()).isValidTag(locationTag)){
+			error("Location tag is invalid, aborting...");
+			return null;
+		}
+		
+		return locationTag;
 	}
 	
 	class ModuleWorker extends Thread {

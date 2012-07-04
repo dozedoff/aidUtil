@@ -133,7 +133,7 @@ public class ModuleManageLists extends MaintenanceModule {
 				statHashed++;
 				
 				if(listIndex.isSelected()){
-					sql.addHash(hash, file.toString(), file.toFile().length());
+					sql.addIndex(hash, file.toString(), file.toFile().length());
 				}else if(listArchive.isSelected()){
 					//TODO implement this
 					error("Function not implemented");
