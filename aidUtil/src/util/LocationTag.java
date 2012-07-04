@@ -28,8 +28,8 @@ public class LocationTag {
 		LinkedList<String> tags = new LinkedList<>();
 		
 		for(File file : new File(path.getRoot().toString()).listFiles()){
-			if(file.toString().startsWith(LOCATION_TAG_PREFIX)){
-				tags.add(file.toString().substring(LOCATION_TAG_PREFIX.length()));
+			if(file.getName().startsWith(LOCATION_TAG_PREFIX)){
+				tags.add(file.getName().substring(LOCATION_TAG_PREFIX.length()));
 			}
 		}
 		
