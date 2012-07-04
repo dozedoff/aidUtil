@@ -63,6 +63,8 @@ public class ModuleManageLists extends MaintenanceModule {
 		
 		container.add(listDnw);
 		container.add(listBlacklist);
+		
+		container.repaint();
 	}
 
 	@Override
@@ -89,7 +91,22 @@ public class ModuleManageLists extends MaintenanceModule {
 		}
 		
 		stopWatch.stop();
-		info("Finished processing " + statHashed + " blacklisted files in " + stopWatch.getTime());
+		
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("Finished processing ");
+		sb.append(statHashed+" ");
+		
+		if(listDnw.isSelected()){
+			sb.append("DNW");
+		}else{
+			sb.append("blacklisted");
+		}
+		
+		sb.append(" files in ");
+		sb.append(stopWatch.getTime());
+		
+		info(sb.toString());
 		enableAllOptions(true);
 	}
 
