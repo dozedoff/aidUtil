@@ -32,6 +32,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -43,6 +45,8 @@ import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import com.sun.org.apache.xml.internal.resolver.helpers.PublicId;
 
 import time.StopWatch;
 import util.LocationTag;
@@ -272,7 +276,20 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	
 	class ImageVisitor extends SimpleFileVisitor<Path>{
 		ImageFilter imgFilter = new ImageFilter();
-		AidDAO sql = new AidDAO(getConnectionPool());
+		ArrayList<String> indexed;
+		boolean skip = false;
+		
+		public ImageVisitor(){
+			if(indexSkip.isSelected()){
+				skip = true;
+				info("Fetching file list from DB...");
+				indexed = new AidDAO(getConnectionPool()).getLocationFilelist(locationTag);
+				info("Performing sort...");
+				Collections.sort(indexed); // sort the list so we can use binary search
+				info("Ready to roll...");
+			}
+		}
+		
 		
 		@Override
 		public FileVisitResult preVisitDirectory(Path arg0, BasicFileAttributes arg1) throws IOException {
@@ -305,8 +322,8 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 			String filename = file.getFileName().toString();
 
 			if(! filename.startsWith(BLACKLISTED_TAG) && imgFilter.accept(null, filename)){
-				if(indexSkip.isSelected()){
-					if(sql.isIndexedPath(file, locationTag)){
+				if(skip){
+					if(Collections.binarySearch(indexed, filename) >= 0){
 						return FileVisitResult.CONTINUE;
 					}
 				}
@@ -452,7 +469,6 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 							String path = sql.getPath(hash);
 							if(path == null || (! path.equals(f.toString().toLowerCase()))){
 								sql.addDuplicate(hash, f.toString(), f.length(), locationTag);
-								info("Duplicate found " + f.toString());
 							}
 						}else{
 							if(! sql.addIndex(hash, f.toString(), f.length(), locationTag)){
