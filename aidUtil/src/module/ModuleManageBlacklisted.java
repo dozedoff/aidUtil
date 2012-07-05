@@ -72,6 +72,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	
 	JCheckBox blMoveTagged = new JCheckBox("Move only (no hashing)");
 	JCheckBox blCheck = new JCheckBox("Check for blacklisted");
+	JCheckBox indexSkip = new JCheckBox("Skip index files");
 	
 	JCheckBox dnwCheck = new JCheckBox("Check for DNW");
 	JRadioButton dnwMove = new JRadioButton("Move DNW");
@@ -133,6 +134,8 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		container.add(panelDnw);
 		
 		panelIndex.add(indexCheck);
+		panelIndex.add(indexSkip);
+		indexSkip.setToolTipText("If the filepath is found, the file will not be hashed");
 		panelIndex.setBorder(BorderFactory.createTitledBorder("Index"));
 		container.add(panelIndex);
 		
@@ -382,6 +385,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 			boolean blc = blCheck.isSelected();
 			boolean index = indexCheck.isSelected();
 			boolean dnw = dnwCheck.isSelected();
+			boolean iSkip = indexSkip.isSelected();
 			
 			while((! isInterrupted()) && (producer.isAlive() || (! dataQueue.isEmpty()))){
 				String hash;
@@ -389,6 +393,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 				
 				try {
 					fd = dataQueue.take();
+					
 					hash = hm.hash(fd.data);
 					// track stats
 					statHashed++;
