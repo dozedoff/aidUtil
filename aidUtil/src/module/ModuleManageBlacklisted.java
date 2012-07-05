@@ -427,7 +427,16 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 					//index the file
 					if(index){
 						File f = fd.file.toFile();
-						sql.addIndex(hash, f.toString(), f.length(), locationTag);
+						if(sql.isHashed(hash)){
+							String path = sql.getPath(hash);
+							if(path == null || (! path.equals(f.toString()))){
+								sql.addDuplicate(hash, f.toString(), f.length(), locationTag);
+							}
+						}else{
+							if(! sql.addIndex(hash, f.toString(), f.length(), locationTag)){
+								warning("Duplicate found " + f.toString());
+							}
+						}
 					}
 				} catch (InterruptedException e) {
 					interrupt();
