@@ -62,6 +62,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 
 	Thread worker[] = new Thread[WORKERS], producer, etaTracker;
 	StopWatch stopWatch = new StopWatch();
+	StopWatch dirWalkStopwatch = new StopWatch();
 	volatile int statHashed = 0;
 	String locationTag = null;
 	
@@ -153,6 +154,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		statBlocked = 0;
 		statDir = 0;
 		stopWatch.reset();
+		dirWalkStopwatch.reset();
 		duration = "--:--:--";
 		
 		locationTag = null;
@@ -181,6 +183,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		stopWatch.start();
 		
 		info("Walking directories...");
+		dirWalkStopwatch.start();
 		try {
 			// go find those files...
 			Files.walkFileTree( f.toPath(), new ImageVisitor());
@@ -188,6 +191,9 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 			error("File walk failed");
 			e.printStackTrace();
 		}
+		dirWalkStopwatch.stop();
+		
+		info("Walked directories in "+ dirWalkStopwatch.getTime());
 		
 		lookForBlacklisted();
 
@@ -446,10 +452,11 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 							String path = sql.getPath(hash);
 							if(path == null || (! path.equals(f.toString().toLowerCase()))){
 								sql.addDuplicate(hash, f.toString(), f.length(), locationTag);
+								info("Duplicate found " + f.toString());
 							}
 						}else{
 							if(! sql.addIndex(hash, f.toString(), f.length(), locationTag)){
-								warning("Duplicate found " + f.toString());
+								error("Failed to add index for " + f.toString() + " - " + hash);
 							}
 						}
 					}
