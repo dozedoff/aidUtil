@@ -251,7 +251,10 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	@Override
 	public void Cancel() {
 		stop = true;
-		producer.interrupt();
+		if(producer != null){
+			producer.interrupt();
+		}
+		
 		pendingFiles.clear();
 		
 		for(Thread t : worker){
@@ -294,15 +297,15 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		@Override
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)throws IOException {
 			String filename = file.getFileName().toString();
-			
-			if(indexSkip.isSelected()){
-				if(sql.isIndexedPath(file, locationTag)){
-					return FileVisitResult.CONTINUE;
-				}
-			}
-			
+
 			if(! filename.startsWith(BLACKLISTED_TAG) && imgFilter.accept(null, filename)){
-					pendingFiles.add(file);
+				if(indexSkip.isSelected()){
+					if(sql.isIndexedPath(file, locationTag)){
+						return FileVisitResult.CONTINUE;
+					}
+				}
+
+				pendingFiles.add(file);
 			}else if (filename.startsWith(BLACKLISTED_TAG)){
 				addBlacklisted(file.getParent());
 			}
