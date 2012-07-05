@@ -263,11 +263,12 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	
 	class ImageVisitor extends SimpleFileVisitor<Path>{
 		ImageFilter imgFilter = new ImageFilter();
+		AidDAO sql = new AidDAO(getConnectionPool());
 		
 		@Override
 		public FileVisitResult preVisitDirectory(Path arg0, BasicFileAttributes arg1) throws IOException {
 			// don't go there...
-			if((arg0.getFileName() != null) && arg0.getFileName().toString().equals("$Recycle.Bin")){
+			if((arg0.getFileName() != null) && arg0.getFileName().toString().toLowerCase().equals("$recycle.bin")){
 				return FileVisitResult.SKIP_SUBTREE;
 			}
 			
@@ -293,6 +294,13 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		@Override
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)throws IOException {
 			String filename = file.getFileName().toString();
+			
+			if(indexSkip.isSelected()){
+				if(sql.isIndexedPath(file, locationTag)){
+					return FileVisitResult.CONTINUE;
+				}
+			}
+			
 			if(! filename.startsWith(BLACKLISTED_TAG) && imgFilter.accept(null, filename)){
 					pendingFiles.add(file);
 			}else if (filename.startsWith(BLACKLISTED_TAG)){
@@ -385,7 +393,6 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 			boolean blc = blCheck.isSelected();
 			boolean index = indexCheck.isSelected();
 			boolean dnw = dnwCheck.isSelected();
-			boolean iSkip = indexSkip.isSelected();
 			
 			while((! isInterrupted()) && (producer.isAlive() || (! dataQueue.isEmpty()))){
 				String hash;
@@ -434,7 +441,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 						File f = fd.file.toFile();
 						if(sql.isHashed(hash)){
 							String path = sql.getPath(hash);
-							if(path == null || (! path.equals(f.toString()))){
+							if(path == null || (! path.equals(f.toString().toLowerCase()))){
 								sql.addDuplicate(hash, f.toString(), f.length(), locationTag);
 							}
 						}else{
