@@ -2,3 +2,4 @@
 *.class
 db.properties
 /aidUtil/aidUtil.xml
+/aidUtil/bin
