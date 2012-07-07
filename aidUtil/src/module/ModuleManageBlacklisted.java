@@ -101,28 +101,23 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	
 	@Override
 	public void optionPanel(Container container) {
+		final JRadioButton dnwRadio[] = {dnwMove, dnwDelete, dnwLog};
+		
 		panelBlacklist.add(blCheck);
 		panelBlacklist.add(blMoveTagged);
 		panelBlacklist.setBorder(BorderFactory.createTitledBorder("Blacklist"));
 		container.add(panelBlacklist);
 		
 		panelDnw.add(dnwCheck);
-
 		
-		//TODO not working...
 		// disable buttons when not in use
-		dnwCheck.addChangeListener(new ChangeListener() {
-			JRadioButton buttons[] = {dnwMove, dnwDelete, dnwLog};
+		dnwCheck.addActionListener(new ActionListener() {
 			@Override
-			public void stateChanged(ChangeEvent arg0) {
+			public void actionPerformed(ActionEvent arg0) {
 				if(dnwCheck.isSelected()){
-					for(JRadioButton b : buttons){
-						b.setEnabled(true);
-					}
+					setDnwRadioEnable(true);
 				}else{
-					for(JRadioButton b : buttons){
-						b.setEnabled(true);
-					}
+					setDnwRadioEnable(false);
 				}
 			}
 		});
@@ -131,6 +126,8 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		dnwGroup.add(dnwLog);
 		dnwGroup.add(dnwDelete);
 		dnwLog.setSelected(true);
+		
+		setDnwRadioEnable(false);
 		
 		panelDnw.add(dnwMove);
 		panelDnw.add(dnwDelete);
@@ -149,6 +146,14 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		container.add(progressBar);
 		
 		container.repaint();
+	}
+	
+	private void setDnwRadioEnable(boolean enable){
+		final JRadioButton dnwRadio[] = {dnwMove, dnwDelete, dnwLog};
+		
+		for(JRadioButton r : dnwRadio){
+			r.setEnabled(enable);
+		}
 	}
 
 	@Override
