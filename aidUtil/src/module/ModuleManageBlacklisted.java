@@ -447,7 +447,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 					// see if there are any DNW files
 					if(dnw && sql.isDnw(hash)){
 						if(dnwLog.isSelected()){
-							info("Found DNW " + fd.toString());
+							info("Found DNW " + fd.file.toString());
 						}else if(dnwDelete.isSelected()){
 							try {
 								Files.delete(fd.file);
