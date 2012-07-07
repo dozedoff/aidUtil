@@ -26,6 +26,10 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
+import java.util.SortedSet;
+
+import org.reflections.Reflections;
 
 import module.MaintenanceModule;
 import module.ModuleFactory;
@@ -63,10 +67,22 @@ public class Core {
 	public List<MaintenanceModule> loadModules(){
 		String relativePath = "bin"+File.separator+"module"; // path to the bin/module directory
 		File moduleDir = new File(FileUtil.WorkingDir(),relativePath);
-		String [] files = moduleDir.list();	// get list of files in the directory
 		
+		LinkedList<MaintenanceModule> modules = null;
+		
+		if(moduleDir.exists()){
+			String [] files = moduleDir.list();	// get list of files in the directory
+			modules = loadModulesDirectory(files);
+		}else{
+			modules = loadModulesJar();
+		}
+		
+		return modules;
+	}
+	
+	private LinkedList<MaintenanceModule> loadModulesDirectory(String[] files){
 		LinkedList<MaintenanceModule> modules = new LinkedList<>();
-
+		
 		for(String s : files){
 			// filter out files that are not maintenance modules
 			if(s.startsWith("Module") && s.endsWith(".class") && !s.equals(ModuleFactory.class.getSimpleName()+".class") && !s.contains("$")){
@@ -80,5 +96,23 @@ public class Core {
 			}
 		}
 		return modules;
+	}
+	
+	private LinkedList<MaintenanceModule> loadModulesJar(){
+		LinkedList<MaintenanceModule> modules = new LinkedList<>();
+		
+		Reflections reflections = new Reflections("aidUtil.*");
+		 Set<Class<? extends MaintenanceModule>> moduleSet = reflections.getSubTypesOf(MaintenanceModule.class);
+		
+		 for(Object o : moduleSet){
+			 try {
+				modules.add(ModuleFactory.createModule(o.getClass().getSimpleName())); // create instance of the module
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		 }
+		 
+		 return modules;
 	}
 }
