@@ -4,11 +4,13 @@
 	<classpathentry kind="src" path="aid/src"/>
 	<classpathentry kind="src" path="common/src"/>
 	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="src" path="aid/test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/BoneCP"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Mockito"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/SLF4J"/>
 	<classpathentry kind="con" path="org.eclipse.datatools.connectivity.jdt.DRIVERLIBRARY/MySQL JDBC Driver"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/DbUnit"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
