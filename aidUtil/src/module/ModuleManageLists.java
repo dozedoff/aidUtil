@@ -44,7 +44,9 @@ public class ModuleManageLists extends MaintenanceModule {
 	private boolean stop = false;
 	
 	ButtonGroup optionGroup;
-	JRadioButton listDnw, listBlacklist;
+	JRadioButton listDnw = new JRadioButton("DNW"), listBlacklist = new JRadioButton("Blacklist"),
+				listUnDnw = new JRadioButton("Un-DNW"), listUnBlacklist = new JRadioButton("Un-Blacklist");
+	JRadioButton[] rbs = {listDnw, listBlacklist, listUnDnw, listUnBlacklist};
 	
 	public ModuleManageLists(){
 		super();
@@ -55,14 +57,10 @@ public class ModuleManageLists extends MaintenanceModule {
 	public void optionPanel(Container container) {
 		optionGroup = new ButtonGroup();
 		
-		listDnw = new JRadioButton("DNW");
-		listBlacklist = new JRadioButton("Blacklist");
-		
-		optionGroup.add(listBlacklist);
-		optionGroup.add(listDnw);
-		
-		container.add(listDnw);
-		container.add(listBlacklist);
+		for(JRadioButton rb : rbs){
+			optionGroup.add(rb);
+			container.add(rb);
+		}
 		
 		container.repaint();
 	}
@@ -94,15 +92,8 @@ public class ModuleManageLists extends MaintenanceModule {
 		
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append("Finished processing ");
-		sb.append(statHashed+" ");
-		
-		if(listDnw.isSelected()){
-			sb.append("DNW");
-		}else{
-			sb.append("blacklisted");
-		}
-		
+		sb.append("Processed ");
+		sb.append(statHashed);
 		sb.append(" files in ");
 		sb.append(stopWatch.getTime());
 		
@@ -116,8 +107,9 @@ public class ModuleManageLists extends MaintenanceModule {
 	}
 	
 	private void enableAllOptions(boolean enable) {
-		listDnw.setEnabled(enable);
-		listBlacklist.setEnabled(enable);
+		for(JRadioButton rb : rbs){
+			rb.setEnabled(enable);
+		}
 	}
 	
 	class FileHasher extends SimpleFileVisitor<Path>{
@@ -141,8 +133,14 @@ public class ModuleManageLists extends MaintenanceModule {
 				
 				if(listDnw.isSelected()){
 					sql.update(hash, AidTables.Dnw);
+					sql.deleteBlock(hash);
 				}else if(listBlacklist.isSelected()){
 					sql.update(hash, AidTables.Block);
+					sql.deleteDnw(hash);
+				}else if(listUnDnw.isSelected()){
+					sql.deleteDnw(hash);
+				}else if(listUnBlacklist.isSelected()){
+					sql.deleteBlock(hash);
 				}else{
 					error("Invalid mode");
 					return FileVisitResult.TERMINATE;
