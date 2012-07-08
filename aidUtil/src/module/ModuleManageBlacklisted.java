@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ import file.FileUtil;
 public class ModuleManageBlacklisted extends MaintenanceModule {
 	final String BLACKLISTED_TAG = "WARNING-";
 	final String BLACKLISTED_DIR = "CHECK";
+	final String DNW_DIR = "DNW";
 	
 	final int WORKERS = 2; // number of threads hashing data and communicating with the DB
 	final int FILE_QUEUE_SIZE = 100; // setting this too high will probably result in "out of memory" errors
@@ -280,15 +282,22 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	}
 	
 	class ImageVisitor extends SimpleFileVisitor<Path>{
+		final String[] ignoredDir = {BLACKLISTED_DIR,DNW_DIR, "$recycle.bin", "System Volume Information"};
+		final ArrayList<Path> ignoredPaths = new ArrayList<>(ignoredDir.length);
 		ImageFilter imgFilter = new ImageFilter();
 		ArrayList<String> indexed;
 		boolean skip = false;
 		
 		public ImageVisitor(){
+			for(String s : ignoredDir){
+				ignoredPaths.add(Paths.get(getPath()).getRoot().resolve(s));
+			}
+			
 			if(indexSkip.isSelected()){
 				skip = true;
 				info("Fetching file list from DB...");
 				indexed = new AidDAO(getConnectionPool()).getLocationFilelist(locationTag);
+				info("Loaded "+indexed.size()+" index entries from the DB");
 				info("Performing sort...");
 				Collections.sort(indexed); // sort the list so we can use binary search
 				info("Ready to roll...");
@@ -299,7 +308,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		@Override
 		public FileVisitResult preVisitDirectory(Path arg0, BasicFileAttributes arg1) throws IOException {
 			// don't go there...
-			if((arg0.getFileName() != null) && arg0.getFileName().toString().toLowerCase().equals("$recycle.bin")){
+			if(ignoredPaths.contains(arg0)){
 				return FileVisitResult.SKIP_SUBTREE;
 			}
 			
@@ -368,7 +377,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	private void moveBlacklisted(){
 		for(Path p : blacklistedDir){
 			try {
-				FileUtil.moveDirectory(p, p.getRoot().resolve(BLACKLISTED_DIR));
+				FileUtil.moveFileWithStructure(p, p.getRoot().resolve(BLACKLISTED_DIR));
 				statDir++;
 			} catch (IOException e) {
 				error("Could not move directory " + p.toString() + " ("+ e.getMessage() + ")");
@@ -457,8 +466,8 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 							}
 						}else if(dnwMove.isSelected()){
 							try {
-								Files.move(fd.file, fd.file.getRoot().resolve("DNW").resolve(fd.file.getFileName()));
-								info("Moved DNW " + fd.file.toString() + " to " + fd.file.getRoot().resolve("DNW").toString());
+								FileUtil.moveFileWithStructure(fd.file, fd.file.getRoot().resolve(DNW_DIR));
+								info("Moved DNW " + fd.file.toString() + " to " + fd.file.getRoot().resolve(DNW_DIR).toString());
 							} catch (IOException e) {
 								error("Failed to move DNW " + fd.file.toString());
 							}
