@@ -282,7 +282,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	}
 	
 	class ImageVisitor extends SimpleFileVisitor<Path>{
-		final String[] ignoredDir = {BLACKLISTED_DIR,DNW_DIR, "$recycle.bin", "System Volume Information"};
+		final String[] ignoredDir = {BLACKLISTED_DIR,DNW_DIR, "$RECYCLE.BIN", "System Volume Information"};
 		final ArrayList<Path> ignoredPaths = new ArrayList<>(ignoredDir.length);
 		ImageFilter imgFilter = new ImageFilter();
 		ArrayList<String> indexed;
