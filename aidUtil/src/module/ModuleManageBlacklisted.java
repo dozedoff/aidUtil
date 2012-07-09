@@ -70,6 +70,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	StopWatch stopWatch = new StopWatch();
 	StopWatch dirWalkStopwatch = new StopWatch();
 	volatile int statHashed = 0;
+	int statSkipped = 0;
 	String locationTag = null;
 	
 	// GUI
@@ -164,6 +165,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		statHashed = 0;
 		statBlocked = 0;
 		statDir = 0;
+		statSkipped = 0;
 		stopWatch.reset();
 		dirWalkStopwatch.reset();
 		duration = "--:--:--";
@@ -204,7 +206,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		}
 		dirWalkStopwatch.stop();
 		
-		info("Walked directories in "+ dirWalkStopwatch.getTime());
+		info("Walked directories in " + dirWalkStopwatch.getTime() + " skipped " + statSkipped + " files");
 		
 		lookForBlacklisted();
 
@@ -337,7 +339,8 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 
 			if(! filename.startsWith(BLACKLISTED_TAG) && imgFilter.accept(null, filename)){
 				if(skip){
-					if(Collections.binarySearch(indexed, filename) >= 0){
+					if(Collections.binarySearch(indexed, file.toString().toLowerCase()) >= 0){
+						statSkipped++;
 						return FileVisitResult.CONTINUE;
 					}
 				}
