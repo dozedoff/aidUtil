@@ -55,7 +55,7 @@ import util.LocationTag;
 import file.BinaryFileReader;
 import file.FileUtil;
 
-public class ModuleManageBlacklisted extends MaintenanceModule {
+public class ModuleManageFiles extends MaintenanceModule {
 	final String BLACKLISTED_TAG = "WARNING-";
 	final String BLACKLISTED_DIR = "CHECK";
 	final String DNW_DIR = "DNW";
@@ -99,9 +99,9 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	boolean stop = false;
 	String duration;
 	
-	public ModuleManageBlacklisted() {
+	public ModuleManageFiles() {
 		super();
-		moduleName = "Manage Blacklisted";
+		moduleName = "Manage Files";
 	}
 	
 	@Override
@@ -229,7 +229,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		
 		stopWatch.stop();
 		
-		info("Blocked files marking done. " + statHashed +" files hashed, " + statBlocked +" blacklisted files found, " + statDir + " blacklisted Directories moved.");
+		info("File processing done. " + statHashed +" files hashed, " + statBlocked +" blacklisted files found, " + statDir + " blacklisted Directories moved.");
 		info("Mark blacklisted run duration - " + stopWatch.getTime());
 		
 		setStatus("Finished");
