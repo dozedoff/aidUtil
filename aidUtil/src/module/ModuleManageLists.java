@@ -133,14 +133,14 @@ public class ModuleManageLists extends MaintenanceModule {
 				
 				if(listDnw.isSelected()){
 					sql.update(hash, AidTables.Dnw);
-					sql.deleteBlock(hash);
+					sql.delete(AidTables.Block, hash);
 				}else if(listBlacklist.isSelected()){
 					sql.update(hash, AidTables.Block);
-					sql.deleteDnw(hash);
+					sql.delete(AidTables.Dnw, hash);
 				}else if(listUnDnw.isSelected()){
-					sql.deleteDnw(hash);
+					sql.delete(AidTables.Dnw, hash);
 				}else if(listUnBlacklist.isSelected()){
-					sql.deleteBlock(hash);
+					sql.delete(AidTables.Block, hash);
 				}else{
 					error("Invalid mode");
 					return FileVisitResult.TERMINATE;
