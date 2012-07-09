@@ -19,6 +19,7 @@ package module;
 
 import hash.HashMaker;
 import io.AidDAO;
+import io.AidTables;
 
 import java.awt.Container;
 import java.awt.Dimension;
@@ -81,6 +82,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	JCheckBox blMoveTagged = new JCheckBox("Move only (no hashing)");
 	JCheckBox blCheck = new JCheckBox("Check for blacklisted");
 	JCheckBox indexSkip = new JCheckBox("Skip index files");
+	JCheckBox indexPrune = new JCheckBox("Prune index");
 	
 	JCheckBox dnwCheck = new JCheckBox("Check for DNW");
 	JRadioButton dnwMove = new JRadioButton("Move DNW");
@@ -104,8 +106,6 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	
 	@Override
 	public void optionPanel(Container container) {
-		final JRadioButton dnwRadio[] = {dnwMove, dnwDelete, dnwLog};
-		
 		panelBlacklist.add(blCheck);
 		panelBlacklist.add(blMoveTagged);
 		panelBlacklist.setBorder(BorderFactory.createTitledBorder("Blacklist"));
@@ -140,7 +140,10 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		
 		panelIndex.add(indexCheck);
 		panelIndex.add(indexSkip);
+		panelIndex.add(indexPrune);
+		
 		indexSkip.setToolTipText("If the filepath is found, the file will not be hashed");
+		indexPrune.setToolTipText("Delete index entries with invalid paths");
 		panelIndex.setBorder(BorderFactory.createTitledBorder("Index"));
 		container.add(panelIndex);
 		
@@ -171,6 +174,7 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		duration = "--:--:--";
 		
 		locationTag = null;
+		ArrayList<String> indexList = null;
 		
 		// reset stop flag
 		stop = false;
@@ -195,11 +199,19 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		
 		stopWatch.start();
 		
+		if(indexSkip.isSelected() || indexPrune.isSelected()){
+			 indexList = loadIndexedFiles(locationTag);
+		}
+		
+		if(indexPrune.isSelected()){
+			pruneIndex(indexList);
+		}
+		
 		info("Walking directories...");
 		dirWalkStopwatch.start();
 		try {
 			// go find those files...
-			Files.walkFileTree( f.toPath(), new ImageVisitor());
+			Files.walkFileTree( f.toPath(), new ImageVisitor(indexList));
 		} catch (IOException e) {
 			error("File walk failed");
 			e.printStackTrace();
@@ -286,23 +298,20 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 	class ImageVisitor extends SimpleFileVisitor<Path>{
 		final String[] ignoredDir = {BLACKLISTED_DIR,DNW_DIR, "$RECYCLE.BIN", "System Volume Information"};
 		final ArrayList<Path> ignoredPaths = new ArrayList<>(ignoredDir.length);
+		final ArrayList<String> indexed;
+		
 		ImageFilter imgFilter = new ImageFilter();
-		ArrayList<String> indexed;
 		boolean skip = false;
 		
-		public ImageVisitor(){
+		public ImageVisitor(ArrayList<String> indexed){
+			this.indexed = indexed;
+			
 			for(String s : ignoredDir){
 				ignoredPaths.add(Paths.get(getPath()).getRoot().resolve(s));
 			}
 			
 			if(indexSkip.isSelected()){
 				skip = true;
-				info("Fetching file list from DB...");
-				indexed = new AidDAO(getConnectionPool()).getLocationFilelist(locationTag);
-				info("Loaded "+indexed.size()+" index entries from the DB");
-				info("Performing sort...");
-				Collections.sort(indexed); // sort the list so we can use binary search
-				info("Ready to roll...");
 			}
 		}
 		
@@ -386,6 +395,46 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 				error("Could not move directory " + p.toString() + " ("+ e.getMessage() + ")");
 			}
 		}
+	}
+	
+	private void pruneIndex(ArrayList<String> index){
+		int pruned = 0;
+		int counter = 0;
+		AidDAO sql = new AidDAO(getConnectionPool());
+		
+		info("Pruning index...");
+		setStatus("Pruning index...");
+		progressBar.setMaximum(index.size());
+		
+		for(String s : index){
+			if(stop){
+				break;
+			}
+			
+			Path path = Paths.get(s);
+			
+			if(! Files.exists(path)){
+				sql.deleteIndexByPath(s);
+				pruned++;
+			}
+			
+			counter++;
+			progressBar.setValue(counter);
+		}
+		
+		info("Pruned " + pruned + " entries from the index");
+	}
+	
+	private ArrayList<String> loadIndexedFiles(String location){
+			ArrayList<String> indexed;
+			info("Fetching file list from DB...");
+			indexed = new AidDAO(getConnectionPool()).getLocationFilelist(location);
+			info("Loaded "+indexed.size()+" index entries from the DB");
+			info("Performing sort...");
+			Collections.sort(indexed); // sort the list so we can use binary search
+			info("Indexed list ready...");
+			
+			return indexed;
 	}
 	
 	class DataProducer extends Thread {
