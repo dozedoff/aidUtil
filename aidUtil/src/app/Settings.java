@@ -1,4 +1,4 @@
-/*  Copyright (C) 2012  Nicholas Wright
+﻿/*  Copyright (C) 2012  Nicholas Wright
 	
 	part of 'AidUtil', a collection of maintenance tools for 'Aid'.
 
@@ -17,17 +17,19 @@
  */
 package app;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
 public class Settings {
-	private Settings instance = null;
-	private Properties appSettings = new Properties();
+	private static Settings instance = null;
+	private static Properties appSettings = new Properties();
 	private Settings() {}
 	
-	public Settings getInstance(){
+	public static Settings getInstance(){
 		if(instance == null){
 			instance = new Settings();
 			try {
@@ -43,5 +45,9 @@ public class Settings {
 	
 	public Path getTagPath(String tag){
 		return Paths.get(appSettings.getProperty("path-"+tag));
+	}
+	
+	public String getTagPathAsString(String tag){
+		return appSettings.getProperty("path-"+tag);
 	}
 }

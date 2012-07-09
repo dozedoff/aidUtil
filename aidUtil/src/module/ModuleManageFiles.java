@@ -48,6 +48,8 @@ import javax.swing.JRadioButton;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import app.Settings;
+
 import com.sun.org.apache.xml.internal.resolver.helpers.PublicId;
 
 import time.StopWatch;
@@ -408,12 +410,14 @@ public class ModuleManageFiles extends MaintenanceModule {
 		setStatus("Pruning index...");
 		progressBar.setMaximum(index.size());
 		
+		String drive = Settings.getInstance().getTagPathAsString(locationTag);
+		
 		for(String s : index){
 			if(stop){
 				break;
 			}
 			
-			Path path = Paths.get(s);
+			Path path = Paths.get(drive).resolve(s);
 			
 			if(! Files.exists(path)){
 				sql.deleteIndexByPath(s);
