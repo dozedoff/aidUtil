@@ -401,7 +401,9 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 		int pruned = 0;
 		int counter = 0;
 		AidDAO sql = new AidDAO(getConnectionPool());
+		StopWatch swPrune = new StopWatch();
 		
+		swPrune.start();
 		info("Pruning index...");
 		setStatus("Pruning index...");
 		progressBar.setMaximum(index.size());
@@ -421,18 +423,23 @@ public class ModuleManageBlacklisted extends MaintenanceModule {
 			counter++;
 			progressBar.setValue(counter);
 		}
-		
-		info("Pruned " + pruned + " entries from the index");
+		swPrune.stop();
+		info("Pruned " + pruned + " entries from the index in " + swPrune.getTime());
 	}
 	
 	private ArrayList<String> loadIndexedFiles(String location){
 			ArrayList<String> indexed;
+			StopWatch swLoad = new StopWatch();
+			
+			swLoad.start();
 			info("Fetching file list from DB...");
 			indexed = new AidDAO(getConnectionPool()).getLocationFilelist(location);
 			info("Loaded "+indexed.size()+" index entries from the DB");
 			info("Performing sort...");
 			Collections.sort(indexed); // sort the list so we can use binary search
-			info("Indexed list ready...");
+			swLoad.stop();
+			
+			info("Indexed list ready...(" + swLoad.getTime() +")");
 			
 			return indexed;
 	}
