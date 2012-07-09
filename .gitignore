@@ -3,3 +3,4 @@
 db.properties
 /aidUtil/aidUtil.xml
 /aidUtil/bin
+/aidUtil/src/app/settings.properties
