@@ -19,7 +19,6 @@ package module;
 
 import hash.HashMaker;
 import io.AidDAO;
-import io.AidTables;
 
 import java.awt.Container;
 import java.awt.Dimension;
@@ -45,15 +44,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
-import app.Settings;
-
-import com.sun.org.apache.xml.internal.resolver.helpers.PublicId;
 
 import time.StopWatch;
-import util.LocationTag;
 import file.BinaryFileReader;
 import file.FileUtil;
 
@@ -75,6 +67,7 @@ public class ModuleManageFiles extends MaintenanceModule {
 	volatile int statHashed = 0;
 	int statSkipped = 0;
 	String locationTag = null;
+	String drive = null;
 	
 	// GUI
 	JPanel panelBlacklist = new JPanel();
@@ -193,7 +186,10 @@ public class ModuleManageFiles extends MaintenanceModule {
 			return;
 		}
 		
-		locationTag = checkTag(f.toPath());
+		locationTag = checkTag(f.toPath()); //TODO replace this with util.LocationTag
+		// this should be much safer than using a predefined props file
+		drive = Paths.get(getPath()).getRoot().toString(); 
+		
 		
 		if(locationTag == null){
 			return;
@@ -409,8 +405,6 @@ public class ModuleManageFiles extends MaintenanceModule {
 		info("Pruning index...");
 		setStatus("Pruning index...");
 		progressBar.setMaximum(index.size());
-		
-		String drive = Settings.getInstance().getTagPathAsString(locationTag);
 		
 		for(String s : index){
 			if(stop){
