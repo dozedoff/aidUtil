@@ -350,7 +350,7 @@ public class ModuleManageFiles extends MaintenanceModule {
 
 			if(! filename.startsWith(BLACKLISTED_TAG) && imgFilter.accept(null, filename)){
 				if(skip){
-					if(Collections.binarySearch(indexed, file.toString().toLowerCase()) >= 0){
+					if(Collections.binarySearch(indexed, FileUtil.removeDriveLetter(file).toString().toLowerCase()) >= 0){
 						statSkipped++;
 						return FileVisitResult.CONTINUE;
 					}
