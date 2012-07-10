@@ -20,6 +20,7 @@ package gui;
 import io.ConnectionPool;
 
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.Menu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -50,7 +51,7 @@ public class AidUtil extends JFrame implements ActionListener{
 	JTextField targetPath, status;
 	JTextArea logArea;
 	JPanel optionPanel, controlPanel;
-	JButton start, cancel;
+	JButton start, cancel, clear;
 	JMenuBar mBar;
 	JMenu moduleMenu;
 	HashMap<JMenuItem, MaintenanceModule> guiModelMap = new HashMap<>();
@@ -64,7 +65,7 @@ public class AidUtil extends JFrame implements ActionListener{
 	
 	private void init(List<MaintenanceModule> modules){
 		// set up JFrame
-		setSize(700, 500);
+		setSize(800, 500);
 		setTitle("AidUtil");
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -97,50 +98,17 @@ public class AidUtil extends JFrame implements ActionListener{
 		// enable auto-scroll for the TextArea
 		DefaultCaret caret = (DefaultCaret)logArea.getCaret();
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-
-	}
-	
-	private void setActiveModule(final MaintenanceModule module){
-		optionPanel.removeAll(); // clear the option panel
 		
-		module.setConnectionPool(connPool);
+		// create command buttons
+		start = new JButton("Start");
+		cancel = new JButton("Cancel");
+		clear = new JButton("Clear");
 		
-		// add module specific options
-		module.optionPanel(optionPanel);
-		module.setLog(logArea);
 		
-		// add start/cancel buttons
-		JButton start = new JButton("Start");
-		JButton cancel = new JButton("Cancel");
-		JButton clear = new JButton("Clear");
-		
-		//set tooltips
+		// set clear tooltip
 		clear.setToolTipText("Clear the log area");
 		
-		// set TextFields
-		module.setPathField(targetPath);
-		module.setStatusField(status);
-		
-		// change window title
-		this.setTitle("AidUtil - " + module.getModuleName());
-		
-		// assign module methods to buttons
-		start.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				module.startWorker();
-			}
-		});
-		
-		cancel.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				module.Cancel();
-			}
-		});
-		
+		// set action listener for cancel (done here as the action listener will not change)
 		clear.addActionListener(new ActionListener() {
 			
 			@Override
@@ -149,9 +117,55 @@ public class AidUtil extends JFrame implements ActionListener{
 			}
 		});
 		
-		optionPanel.add(start);
-		optionPanel.add(cancel);
-		optionPanel.add(clear);
+		// add control buttons  
+		controlPanel.add(start);
+		controlPanel.add(cancel);
+		controlPanel.add(clear);
+
+	}
+	
+	private void setActiveModule(final MaintenanceModule module){
+		optionPanel.removeAll(); // clear the option panel
+		optionPanel.setLayout(new FlowLayout()); // reset layout to default
+		
+		module.setConnectionPool(connPool);
+		
+		// add module specific options
+		module.optionPanel(optionPanel);
+		module.setLog(logArea);
+		
+		// set TextFields
+		module.setPathField(targetPath);
+		module.setStatusField(status);
+		
+		// change window title
+		this.setTitle("AidUtil - " + module.getModuleName());
+		
+		// remove previous acction listeners
+		for(ActionListener al : start.getActionListeners()){
+			start.removeActionListener(al);
+		}
+		
+		// assign module methods to buttons
+		start.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				module.startWorker();
+			}
+		});
+		
+		// remove previous acction listeners
+		for(ActionListener al : cancel.getActionListeners()){
+			cancel.removeActionListener(al);
+		}
+		
+		cancel.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				module.Cancel();
+			}
+		});
+		
 		optionPanel.validate();
 		this.validate();
 	}
