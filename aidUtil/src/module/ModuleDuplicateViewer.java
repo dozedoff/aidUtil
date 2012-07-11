@@ -17,14 +17,34 @@
  */
 package module;
 
+import io.AidDAO;
+
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Iterator;
 
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -32,13 +52,16 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
 
 import org.mockito.asm.Label;
 
-public class ModuleDuplicateViewer extends MaintenanceModule {
+import util.LocationTag;
+
+public class ModuleDuplicateViewer extends MaintenanceModule{
 	JPanel displayArea = new JPanel();
 	JPanel duplicateList = new JPanel();
 	JScrollPane duplicateScrollBar = new JScrollPane(duplicateList);
@@ -52,33 +75,105 @@ public class ModuleDuplicateViewer extends MaintenanceModule {
 		duplicateList.setLayout(new GridLayout(0,1));
 		
 		this.OptionPanel = container;
+		
 	}
 
 	@Override
 	public void start() {
-		
-		//DEBUG
-		for(int i=0; i<30; i++ ){
-			duplicateList.add(new DuplicateEntry(String.valueOf(i)));
+		if(! new File(getPath()).exists()){
+			error("Invalid path");
+			return;
 		}
 		
+		AidDAO sql = new AidDAO(getConnectionPool());
+		for(String s : sql.getDuplicates(LocationTag.findTags(getPath()).get(0))){
+			duplicateList.add(new DuplicateEntry(Paths.get(getPath()).getRoot().resolve(s)));
+		}
+		
+		// call this to show components
 		duplicateScrollBar.revalidate();
 	}
 
 	@Override
 	public void Cancel() {
-		// TODO Auto-generated method stub
+		duplicateList.removeAll();
 		
+		duplicateScrollBar.revalidate();
+	}
+	
+	private void displayImage(Path path){
+		
+		try {
+			displayArea.removeAll(); // clear the panel
+			
+			// Create an image input stream on the image
+		    ImageInputStream iis = ImageIO.createImageInputStream(Files.newInputStream(path));
+
+		    // Find all image readers that recognize the image format
+		    Iterator iter = ImageIO.getImageReaders(iis);
+		    if (!iter.hasNext()) {
+		    	displayArea.add(new JLabel("Unable to display image"));
+		        return;
+		    }
+
+		    // Use the first reader
+		    ImageReader reader = (ImageReader)iter.next();
+
+		    ImageReadParam params = reader.getDefaultReadParam();
+		    reader.setInput(iis, true, true);
+		    
+		    int xSampleRate =  (int)Math.ceil((double) reader.getHeight(0) / (double)displayArea.getHeight());
+		    int ySampleRate = (int)Math.ceil((double) reader.getWidth(0) / (double)displayArea.getWidth());
+
+		    int sampleRate = Math.max(xSampleRate, ySampleRate);
+		    
+		    if(sampleRate < 1){
+		    	sampleRate = 1;
+		    }
+		    
+		    params.setSourceSubsampling(sampleRate, sampleRate, 0, 0);
+		    
+			Image img = reader.read(0, params);
+			
+			displayArea.add(new JLabel(new ImageIcon(img),JLabel.CENTER));
+		} catch (IOException e) {
+			displayArea.add(new JLabel("Failed to read image"));
+		}
+		
+		displayArea.revalidate();
+		displayArea.repaint();
 	}
 	
 	class DuplicateEntry extends JPanel {
 		private static final long serialVersionUID = 1L;
 		JCheckBox selected;
+		JLabel pathLable;
+		Path path;
 		
-		public DuplicateEntry(String path) {
-			selected  = new JCheckBox(path);
+		public DuplicateEntry(Path path) {
 			this.setLayout(new FlowLayout(FlowLayout.LEFT));
+			
+			selected  = new JCheckBox();
+			pathLable = new JLabel(path.toString());
+			this.path = path;
+			
+			pathLable.addMouseListener(new Mouse(this.path));
+			pathLable.setPreferredSize(new Dimension(300, 20));
+			
 			this.add(selected);
+			this.add(pathLable);
+		}
+	}
+	
+	class Mouse extends MouseAdapter{
+		Path path;
+		public Mouse(Path path){
+			this.path = path;
+		}
+		
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			displayImage(path);
 		}
 	}
 }
