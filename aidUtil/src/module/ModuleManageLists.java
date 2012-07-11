@@ -134,9 +134,11 @@ public class ModuleManageLists extends MaintenanceModule {
 				if(listDnw.isSelected()){
 					sql.update(hash, AidTables.Dnw);
 					sql.delete(AidTables.Block, hash);
+					sql.deleteIndexByPath(file.toString());
 				}else if(listBlacklist.isSelected()){
 					sql.update(hash, AidTables.Block);
 					sql.delete(AidTables.Dnw, hash);
+					sql.deleteIndexByPath(file.toString());
 				}else if(listUnDnw.isSelected()){
 					sql.delete(AidTables.Dnw, hash);
 				}else if(listUnBlacklist.isSelected()){
