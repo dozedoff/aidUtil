@@ -17,41 +17,68 @@
  */
 package module;
 
+import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListCellRenderer;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableModel;
+
+import org.mockito.asm.Label;
 
 public class ModuleDuplicateViewer extends MaintenanceModule {
 	JPanel displayArea = new JPanel();
 	JPanel duplicateList = new JPanel();
 	JScrollPane duplicateScrollBar = new JScrollPane(duplicateList);
+	Container OptionPanel;
 	
 	@Override
 	public void optionPanel(Container container) {
 		container.setLayout(new GridLayout(-1,2));
 		container.add(duplicateScrollBar);
 		container.add(displayArea);
+		duplicateList.setLayout(new GridLayout(0,1));
 		
-		// set to 1 column grid to make it look like a list
-		duplicateList.setLayout(new GridLayout(-1,1));
+		this.OptionPanel = container;
 	}
 
 	@Override
 	public void start() {
-		// TODO Auto-generated method stub
-
+		
+		//DEBUG
+		for(int i=0; i<30; i++ ){
+			duplicateList.add(new DuplicateEntry(String.valueOf(i)));
+		}
+		
+		duplicateScrollBar.revalidate();
 	}
 
 	@Override
 	public void Cancel() {
 		// TODO Auto-generated method stub
-
+		
 	}
 	
 	class DuplicateEntry extends JPanel {
 		private static final long serialVersionUID = 1L;
+		JCheckBox selected;
 		
+		public DuplicateEntry(String path) {
+			selected  = new JCheckBox(path);
+			this.setLayout(new FlowLayout(FlowLayout.LEFT));
+			this.add(selected);
+		}
 	}
 }
