@@ -19,6 +19,7 @@ package util;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 
 public class LocationTag {
@@ -34,5 +35,10 @@ public class LocationTag {
 		}
 		
 		return tags;
+	}
+	
+	public static LinkedList<String> findTags(String path){
+		Path ppath = Paths.get(path);
+		return findTags(ppath);
 	}
 }
