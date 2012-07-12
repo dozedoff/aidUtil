@@ -20,23 +20,20 @@ package module;
 import io.AidDAO;
 import io.AidTables;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,22 +44,11 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.ListCellRenderer;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableModel;
-
-import org.mockito.asm.Label;
 
 import util.LocationTag;
 
@@ -84,6 +70,18 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		container.add(displayArea);
 		duplicateList.setLayout(new GridLayout(0,1));
 		displayArea.setLayout(new GridLayout(0,1));
+		
+		// Solution from http://stackoverflow.com/a/11398879/891292
+		duplicateScrollBar.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
+	        @Override
+	        public void adjustmentValueChanged(AdjustmentEvent e) {
+	            // The user scrolled the List (using the bar, mouse wheel or something else):
+	            if (e.getAdjustmentType() == AdjustmentEvent.TRACK){
+	                // Jump to the next "block" (which is a row".
+	                e.getAdjustable().setBlockIncrement(100);
+	            }
+	        }
+	    });
 		
 		this.OptionPanel = container;
 		
@@ -283,7 +281,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	
 	class GuiLoader extends Thread {
 		ArrayList<DuplicateEntry> list;
-		
+		int counter = 0;
 		public GuiLoader(ArrayList<DuplicateEntry> list) {
 			this.list = list;
 		}
@@ -291,7 +289,16 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		@Override
 		public void run() {
 			for(DuplicateEntry d : list){
+				if(stop){
+					break;
+				}
+				
+				counter ++;
 				duplicateList.add(d);
+				
+				if(counter % 1000 == 0){
+					try {Thread.sleep(1000);} catch (InterruptedException e) {}
+				}
 			}
 		}
 	}
