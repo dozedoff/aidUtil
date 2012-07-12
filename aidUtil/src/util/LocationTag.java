@@ -28,7 +28,17 @@ public class LocationTag {
 	public static LinkedList<String> findTags(Path path){
 		LinkedList<String> tags = new LinkedList<>();
 		
-		for(File file : new File(path.getRoot().toString()).listFiles()){
+		if(path == null || path.getRoot() == null){
+			return tags;
+		}
+		
+		File[] rootFiles = path.getRoot().toFile().listFiles();
+		
+		if(rootFiles == null){
+			return tags;
+		}
+		
+		for(File file : rootFiles){
 			if(file.getName().startsWith(LOCATION_TAG_PREFIX)){
 				tags.add(file.getName().substring(LOCATION_TAG_PREFIX.length()));
 			}
