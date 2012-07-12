@@ -20,6 +20,7 @@ package module;
 import io.AidDAO;
 import io.AidTables;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -254,6 +255,10 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		public boolean isSelected(){
 			return selected.isSelected();
 		}
+		
+		public void setColor(Color color){
+			pathLable.setForeground(color);
+		}
 
 		@Override
 		public int compareTo(DuplicateEntry o) {
@@ -294,9 +299,21 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		
 		@Override
 		public void run() {
+			String hash = "";
+			boolean color = true;
+			
 			for(DuplicateEntry d : list){
 				if(stop){
 					break;
+				}
+				
+				if(! d.getHash().equals(hash)){
+					hash = d.getHash();
+					color = !color;
+				}
+				
+				if(color){
+					d.setColor(Color.blue);
 				}
 				
 				counter ++;
