@@ -18,6 +18,7 @@
 package module;
 
 import io.AidDAO;
+import io.AidTables;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -36,7 +37,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
@@ -66,6 +71,11 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	JPanel duplicateList = new JPanel();
 	JScrollPane duplicateScrollBar = new JScrollPane(duplicateList);
 	Container OptionPanel;
+	HashMap<String, Path> tagMap = new HashMap<>();
+	
+	boolean stop = false;
+	
+	AidDAO sql;
 	
 	@Override
 	public void optionPanel(Container container) {
@@ -73,6 +83,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		container.add(duplicateScrollBar);
 		container.add(displayArea);
 		duplicateList.setLayout(new GridLayout(0,1));
+		displayArea.setLayout(new GridLayout(0,1));
 		
 		this.OptionPanel = container;
 		
@@ -80,34 +91,73 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 
 	@Override
 	public void start() {
-		if(! new File(getPath()).exists()){
-			error("Invalid path");
-			return;
+		stop = false;
+		duplicateList.removeAll();
+		
+		sql = new AidDAO(getConnectionPool());
+		discoverTags();
+		
+		setStatus("Loading duplicates...");
+		ArrayList<DuplicateEntry> dupeList = new ArrayList<>(sql.size(AidTables.Fileduplicate));
+		
+		// id, dupeLoc, dupepath, origloc, origpath
+		for(String[] s : sql.getDuplicates()){
+			if(stop){
+				break;
+			}
+			
+			if(tagMap.get(s[1]) != null){
+				dupeList.add(new DuplicateEntry(s));
+			}
 		}
 		
-		AidDAO sql = new AidDAO(getConnectionPool());
-		for(String s : sql.getDuplicates(LocationTag.findTags(getPath()).get(0))){
-			duplicateList.add(new DuplicateEntry(Paths.get(getPath()).getRoot().resolve(s)));
-		}
+		setStatus("Sorting duplicates...");
+		Collections.sort(dupeList);
+		
+		setStatus("Adding duplicates to GUI...");
+		
+		Thread guiLoader = new GuiLoader(dupeList);
+		guiLoader.start();
+		
+		try {guiLoader.join();} catch (InterruptedException e) {}
 		
 		// call this to show components
 		duplicateScrollBar.revalidate();
+		
+		setStatus("Ready");
 	}
 
 	@Override
 	public void Cancel() {
+		stop = true;
+		deleteMarked();
 		duplicateList.removeAll();
 		
 		duplicateScrollBar.revalidate();
 	}
 	
-	private void displayImage(Path path){
+	private void discoverTags(){
+		File[] roots = File.listRoots();
+		
+		for(File f : roots){
+			LinkedList<String> tags = LocationTag.findTags(f.toPath());
+			
+			// only one tag in list is a valid state
+			if(tags.size() != 1){
+				continue;
+			}
+			
+			tagMap.put(tags.get(0), f.toPath());
+		}
+	}
+	
+	private void displayImage(DuplicateEntry dupe){
 		
 		try {
 			displayArea.removeAll(); // clear the panel
 			
 			// Create an image input stream on the image
-		    ImageInputStream iis = ImageIO.createImageInputStream(Files.newInputStream(path));
+		    ImageInputStream iis = ImageIO.createImageInputStream(Files.newInputStream(dupe.getPath()));
 
 		    // Find all image readers that recognize the image format
 		    Iterator iter = ImageIO.getImageReaders(iis);
@@ -136,6 +186,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 			Image img = reader.read(0, params);
 			
 			displayArea.add(new JLabel(new ImageIcon(img),JLabel.CENTER));
+			
 		} catch (IOException e) {
 			displayArea.add(new JLabel("Failed to read image"));
 		}
@@ -144,36 +195,104 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		displayArea.repaint();
 	}
 	
-	class DuplicateEntry extends JPanel {
+	private void deleteMarked(){
+		Component[] components = duplicateList.getComponents();
+		
+		for(Component c : components){
+			if(c instanceof DuplicateEntry){
+				DuplicateEntry d = (DuplicateEntry)c;
+				
+				if(d.isSelected()){
+					try {
+						Files.delete(d.getPath());
+						sql.deleteDuplicateByPath(d.getPath());
+						sql.deleteIndexByPath(d.getPath());
+					} catch (IOException e) {
+						error("Failed to delete " + d.getPath().toString());
+					}
+				}
+			}
+		}
+	}
+	
+	class DuplicateEntry extends JPanel implements Comparable<DuplicateEntry>{
 		private static final long serialVersionUID = 1L;
 		JCheckBox selected;
 		JLabel pathLable;
 		Path path;
 		
-		public DuplicateEntry(Path path) {
+		String hash;
+		
+		public DuplicateEntry(String [] data) {
 			this.setLayout(new FlowLayout(FlowLayout.LEFT));
+			//  0   1    2
+			// id, loc, path
+			
+			path = tagMap.get(data[1]).resolve(data[2]);
+			this.hash = data[0];
 			
 			selected  = new JCheckBox();
 			pathLable = new JLabel(path.toString());
-			this.path = path;
 			
-			pathLable.addMouseListener(new Mouse(this.path));
+			pathLable.addMouseListener(new Mouse(this));
 			pathLable.setPreferredSize(new Dimension(300, 20));
 			
 			this.add(selected);
 			this.add(pathLable);
 		}
+
+		public Path getPath() {
+			return path;
+		}
+		
+		public String getHash() {
+			return hash;
+		}
+
+		public boolean isSelected(){
+			return selected.isSelected();
+		}
+
+		@Override
+		public int compareTo(DuplicateEntry o) {
+			return this.hash.compareTo(o.getHash());
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if(obj == null || !(obj instanceof DuplicateEntry)){
+				return false;
+			}
+			
+			return ((DuplicateEntry)obj).getHash().equals(getHash());
+		}
 	}
 	
 	class Mouse extends MouseAdapter{
-		Path path;
-		public Mouse(Path path){
-			this.path = path;
+		DuplicateEntry dupe;
+		
+		public Mouse(DuplicateEntry dupe){
+			this.dupe = dupe;
 		}
 		
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			displayImage(path);
+			displayImage(dupe);
+		}
+	}
+	
+	class GuiLoader extends Thread {
+		ArrayList<DuplicateEntry> list;
+		
+		public GuiLoader(ArrayList<DuplicateEntry> list) {
+			this.list = list;
+		}
+		
+		@Override
+		public void run() {
+			for(DuplicateEntry d : list){
+				duplicateList.add(d);
+			}
 		}
 	}
 }
