@@ -96,6 +96,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		discoverTags();
 		
 		setStatus("Loading duplicates...");
+		info("Loading duplicates...");
 		ArrayList<DuplicateEntry> dupeList = new ArrayList<>(sql.size(AidTables.Fileduplicate));
 		
 		// id, dupeLoc, dupepath, origloc, origpath
@@ -110,9 +111,11 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		}
 		
 		setStatus("Sorting duplicates...");
+		info("Sorting duplicates...");
 		Collections.sort(dupeList);
 		
 		setStatus("Adding duplicates to GUI...");
+		info("Adding duplicates to GUI...");
 		
 		Thread guiLoader = new GuiLoader(dupeList);
 		guiLoader.start();
@@ -231,6 +234,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 			
 			selected  = new JCheckBox();
 			pathLable = new JLabel(path.toString());
+			pathLable.setToolTipText(path.toString());
 			
 			pathLable.addMouseListener(new Mouse(this));
 			pathLable.setPreferredSize(new Dimension(300, 20));
@@ -282,6 +286,8 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	class GuiLoader extends Thread {
 		ArrayList<DuplicateEntry> list;
 		int counter = 0;
+		final int LOAD_LIMIT = 3000; // to prevent the GUI from freezing
+		
 		public GuiLoader(ArrayList<DuplicateEntry> list) {
 			this.list = list;
 		}
@@ -296,8 +302,9 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 				counter ++;
 				duplicateList.add(d);
 				
-				if(counter % 1000 == 0){
-					try {Thread.sleep(1000);} catch (InterruptedException e) {}
+				if(counter >= 3000){
+					info("Load limit of " + LOAD_LIMIT + " reached");
+					break;
 				}
 			}
 		}
