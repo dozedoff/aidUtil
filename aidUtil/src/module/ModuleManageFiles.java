@@ -415,6 +415,7 @@ public class ModuleManageFiles extends MaintenanceModule {
 			
 			if(! Files.exists(path)){
 				sql.deleteIndexByPath(s);
+				sql.deleteDuplicateByPath(s);
 				pruned++;
 			}
 			
