@@ -169,7 +169,6 @@ public class ModuleManageFiles extends MaintenanceModule {
 		duration = "--:--:--";
 		
 		locationTag = null;
-		ArrayList<String> indexList = null;
 		
 		// reset stop flag
 		stop = false;
@@ -197,19 +196,15 @@ public class ModuleManageFiles extends MaintenanceModule {
 		
 		stopWatch.start();
 		
-		if(indexSkip.isSelected() || indexPrune.isSelected()){
-			 indexList = loadIndexedFiles(locationTag);
-		}
-		
 		if(indexPrune.isSelected()){
-			pruneIndex(indexList);
+			pruneIndex();
 		}
 		
 		info("Walking directories...");
 		dirWalkStopwatch.start();
 		try {
 			// go find those files...
-			Files.walkFileTree( f.toPath(), new ImageVisitor(indexList));
+			Files.walkFileTree( f.toPath(), new ImageVisitor(loadIndexedFiles(locationTag)));
 		} catch (IOException e) {
 			error("File walk failed");
 			e.printStackTrace();
@@ -395,11 +390,13 @@ public class ModuleManageFiles extends MaintenanceModule {
 		}
 	}
 	
-	private void pruneIndex(ArrayList<String> index){
+	private void pruneIndex(){
 		int pruned = 0;
 		int counter = 0;
 		AidDAO sql = new AidDAO(getConnectionPool());
 		StopWatch swPrune = new StopWatch();
+		
+		ArrayList<String> index = loadIndexedFiles(locationTag);
 		
 		swPrune.start();
 		info("Pruning index...");
