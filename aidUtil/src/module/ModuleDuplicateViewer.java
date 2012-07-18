@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,44 +46,51 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+import com.sun.org.apache.xerces.internal.impl.xs.util.SimpleLocator;
 
 import util.LocationTag;
 
 public class ModuleDuplicateViewer extends MaintenanceModule{
 	JPanel displayArea = new JPanel();
-	JPanel duplicateList = new JPanel();
-	JScrollPane duplicateScrollBar = new JScrollPane(duplicateList);
+	DuplicateListModel dlm = new DuplicateListModel();
+	JList<DuplicateEntry> duplicateList = new JList<>(dlm);
+	JScrollPane duplicateScrollPane = new JScrollPane(duplicateList);
+	
 	Container OptionPanel;
 	HashMap<String, Path> tagMap = new HashMap<>();
-	
+	LinkedList<DuplicateGroup> groups = new LinkedList<>();
 	boolean stop = false;
 	
 	AidDAO sql;
 	
+	ListSelectionListener selectionListener = new ListSelectionListener() {
+		
+		@Override
+		public void valueChanged(ListSelectionEvent e) {
+			int index = duplicateList.getSelectedIndex();
+			if(index >= 0 && index <= dlm.getSize()-1 ){
+				displayImage(dlm.get(index));
+			}
+		}
+	};
+	
 	@Override
 	public void optionPanel(Container container) {
 		container.setLayout(new GridLayout(-1,2));
-		container.add(duplicateScrollBar);
+		container.add(duplicateScrollPane);
 		container.add(displayArea);
-		duplicateList.setLayout(new GridLayout(0,1));
 		displayArea.setLayout(new GridLayout(0,1));
-		
-		// Solution from http://stackoverflow.com/a/11398879/891292
-		duplicateScrollBar.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
-	        @Override
-	        public void adjustmentValueChanged(AdjustmentEvent e) {
-	            // The user scrolled the List (using the bar, mouse wheel or something else):
-	            if (e.getAdjustmentType() == AdjustmentEvent.TRACK){
-	                // Jump to the next "block" (which is a row".
-	                e.getAdjustable().setBlockIncrement(100);
-	            }
-	        }
-	    });
 		
 		this.OptionPanel = container;
 		
@@ -94,37 +102,11 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		duplicateList.removeAll();
 		
 		sql = new AidDAO(getConnectionPool());
+		duplicateList.removeListSelectionListener(selectionListener);
+		
 		discoverTags();
 		
-		setStatus("Loading duplicates...");
-		info("Loading duplicates...");
-		ArrayList<DuplicateEntry> dupeList = new ArrayList<>(sql.size(AidTables.Fileduplicate));
-		
-		// id, dupeLoc, dupepath, origloc, origpath
-		for(String[] s : sql.getDuplicates()){
-			if(stop){
-				break;
-			}
-			
-			if(tagMap.get(s[1]) != null){
-				dupeList.add(new DuplicateEntry(s));
-			}
-		}
-		
-		setStatus("Sorting duplicates...");
-		info("Sorting duplicates...");
-		Collections.sort(dupeList);
-		
-		setStatus("Adding duplicates to GUI...");
-		info("Adding duplicates to GUI...");
-		
-		Thread guiLoader = new GuiLoader(dupeList);
-		guiLoader.start();
-		
-		try {guiLoader.join();} catch (InterruptedException e) {}
-		
-		// call this to show components
-		duplicateScrollBar.revalidate();
+		loadDuplicates();
 		
 		setStatus("Ready");
 	}
@@ -132,10 +114,6 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	@Override
 	public void Cancel() {
 		stop = true;
-		deleteMarked();
-		duplicateList.removeAll();
-		
-		duplicateScrollBar.revalidate();
 	}
 	
 	private void discoverTags(){
@@ -197,51 +175,111 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		displayArea.repaint();
 	}
 	
-	private void deleteMarked(){
-		Component[] components = duplicateList.getComponents();
-		
-		for(Component c : components){
-			if(c instanceof DuplicateEntry){
-				DuplicateEntry d = (DuplicateEntry)c;
-				
-				if(d.isSelected()){
-					try {
-						Files.delete(d.getPath());
-						sql.deleteDuplicateByPath(d.getPath());
-						sql.deleteIndexByPath(d.getPath());
-					} catch (IOException e) {
-						error("Failed to delete " + d.getPath().toString());
-					}
+	private void deleteMarked(DuplicateGroup group){
+		for(DuplicateEntry de : group.getEntries()){
+			if(de.isSelected()){
+				try {
+					Files.delete(de.getPath());
+					sql.deleteDuplicateByPath(de.getPath());
+					sql.deleteIndexByPath(de.getPath());
+					group.removeEntry(de);
+				} catch (IOException e) {
+					error("Failed to delete " + de.getPath().toString());
 				}
 			}
 		}
+		
+		// if the group only has one entry left, it is no longer needed
+		if(group.getSize() <= 1){
+			for(DuplicateEntry de : group.getEntries()){
+				// only remove, but do NOT delete
+				sql.deleteDuplicateByPath(de.getPath());
+				sql.deleteIndexByPath(de.getPath());
+				group.removeEntry(de);
+			}
+			
+			groups.remove(this);
+		}
 	}
 	
-	class DuplicateEntry extends JPanel implements Comparable<DuplicateEntry>{
+	private void loadDuplicates(){
+		setStatus("Loading duplicates...");
+		info("Loading duplicates...");
+		ArrayList<DuplicateEntry> dupeList = new ArrayList<>(sql.size(AidTables.Fileduplicate));
+		
+		
+		setStatus("Sorting duplicates...");
+		info("Sorting duplicates...");
+		Collections.sort(dupeList);
+		
+		// id, dupeLoc, dupepath, origloc, origpath
+		for(String[] s : sql.getDuplicates()){
+			DuplicateEntry de;
+			
+			if(stop){
+				break;
+			}
+			
+			String hash = s[0];
+			
+			if(tagMap.get(s[1]) != null){
+				de = new DuplicateEntry(hash, tagMap.get(s[1]).resolve(s[2])); // absolute path (tag found)
+			} else {
+				de = new DuplicateEntry(hash, Paths.get(s[2])); // relative path (tag not found)
+			}
+			
+			dupeList.add(de);
+		}
+		
+		DuplicateGroup dg = new DuplicateGroup();
+		String hash = "";
+		
+		setStatus("Creating groups...");
+		info("Creating groups...");
+		
+		for(DuplicateEntry de : dupeList){
+			if(! de.getHash().equals(hash)){
+				hash = de.getHash(); // set hash for next group
+				
+				// only add groups with more than one entry
+				if(! (dg.getSize() <= 1)){
+					groups.add(dg);
+				}
+				
+				dg = new DuplicateGroup();
+			}
+			
+			de.setGroup(dg);
+			dg.addEntry(de);
+		}
+		
+		setStatus("Adding duplicates to GUI...");
+		info("Adding duplicates to GUI...");
+		
+		int duplicates = 0;
+		
+		for(DuplicateGroup d : groups){
+			for(DuplicateEntry de : d.getEntries()){
+				dlm.addElement(de);
+				duplicates++;
+			}
+		}
+		
+		info(duplicates + " duplicates in " + groups.size() + " groups.");
+		duplicateList.addListSelectionListener(selectionListener);
+	}
+	
+	class DuplicateEntry implements Comparable<DuplicateEntry>{
 		private static final long serialVersionUID = 1L;
-		JCheckBox selected;
-		JLabel pathLable;
+		boolean selected = false;
 		Path path;
+		DuplicateGroup group;
 		
 		String hash;
 		
-		public DuplicateEntry(String [] data) {
-			this.setLayout(new FlowLayout(FlowLayout.LEFT));
-			//  0   1    2
-			// id, loc, path
-			
-			path = tagMap.get(data[1]).resolve(data[2]);
-			this.hash = data[0];
-			
-			selected  = new JCheckBox();
-			pathLable = new JLabel(path.toString());
-			pathLable.setToolTipText(path.toString());
-			
-			pathLable.addMouseListener(new Mouse(this));
-			pathLable.setPreferredSize(new Dimension(300, 20));
-			
-			this.add(selected);
-			this.add(pathLable);
+		public DuplicateEntry(String hash, Path path) {
+			this.path = path;
+			this.hash = hash;
 		}
 
 		public Path getPath() {
@@ -252,17 +290,30 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 			return hash;
 		}
 
-		public boolean isSelected(){
-			return selected.isSelected();
+		public void setSelected(boolean selected){
+			this.selected = selected;
 		}
 		
-		public void setColor(Color color){
-			pathLable.setForeground(color);
+		public boolean isSelected(){
+			return selected;
+		}
+		
+		public DuplicateGroup getGroup() {
+			return group;
+		}
+
+		public void setGroup(DuplicateGroup group) {
+			this.group = group;
 		}
 
 		@Override
 		public int compareTo(DuplicateEntry o) {
 			return this.hash.compareTo(o.getHash());
+		}
+		
+		@Override
+		public String toString() {
+			return path.toString();
 		}
 		
 		@Override
@@ -275,55 +326,49 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		}
 	}
 	
-	class Mouse extends MouseAdapter{
-		DuplicateEntry dupe;
+	static class DuplicateGroup {
+		static int groupRunningNumber = 0;
 		
-		public Mouse(DuplicateEntry dupe){
-			this.dupe = dupe;
+		int groupId;
+		Color color;
+		
+		LinkedList<DuplicateEntry> entries = new LinkedList<>();
+
+		public DuplicateGroup() {
+			this.groupId = groupRunningNumber++;
+			
+			if(groupId % 2 == 0){
+				color = Color.black;
+			}else{
+				color = Color.blue;
+			}
 		}
 		
-		@Override
-		public void mouseClicked(MouseEvent e) {
-			displayImage(dupe);
+		public void addEntry(DuplicateEntry de){
+			entries.add(de);
+		}
+		
+		public void removeEntry(DuplicateEntry de){
+			entries.remove(de);
+		}
+		
+		public int getSize(){
+			return entries.size();
+		}
+		
+		public LinkedList<DuplicateEntry> getEntries(){
+			return entries;
+		}
+
+		public Color getColor() {
+			return color;
 		}
 	}
 	
-	class GuiLoader extends Thread {
-		ArrayList<DuplicateEntry> list;
-		int counter = 0;
-		final int LOAD_LIMIT = 3000; // to prevent the GUI from freezing
+
+	
+	class DuplicateListModel extends DefaultListModel<DuplicateEntry>{
+		private static final long serialVersionUID = 1L;
 		
-		public GuiLoader(ArrayList<DuplicateEntry> list) {
-			this.list = list;
-		}
-		
-		@Override
-		public void run() {
-			String hash = "";
-			boolean color = true;
-			
-			for(DuplicateEntry d : list){
-				if(stop){
-					break;
-				}
-				
-				if(! d.getHash().equals(hash)){
-					hash = d.getHash();
-					color = !color;
-				}
-				
-				if(color){
-					d.setColor(Color.blue);
-				}
-				
-				counter ++;
-				duplicateList.add(d);
-				
-				if(counter >= 3000){
-					info("Load limit of " + LOAD_LIMIT + " reached");
-					break;
-				}
-			}
-		}
 	}
 }
