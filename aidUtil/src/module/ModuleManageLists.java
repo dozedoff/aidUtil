@@ -50,7 +50,7 @@ public class ModuleManageLists extends MaintenanceModule {
 	
 	public ModuleManageLists(){
 		super();
-		moduleName = "Manage lists";
+		setModuleName("Manage lists");
 	}
 	
 	@Override

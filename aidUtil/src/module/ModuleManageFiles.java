@@ -96,7 +96,7 @@ public class ModuleManageFiles extends MaintenanceModule {
 	
 	public ModuleManageFiles() {
 		super();
-		moduleName = "Manage Files";
+		setModuleName("Manage files");
 	}
 	
 	@Override
