@@ -19,13 +19,14 @@ package module;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 
 public class ArchiveFinder {
-	public static LinkedList<Path> find(Path directory){
+	public static LinkedList<Path> find(Path directory) throws IOException{
 		LinkedList<Path> archives = new LinkedList<>();
 			//TODO code me
 		return archives;

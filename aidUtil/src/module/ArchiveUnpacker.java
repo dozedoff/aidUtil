@@ -17,14 +17,11 @@
  */
 package module;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 public class ArchiveUnpacker {
-	public void unpack(Path archive, Path tempFolder){
+	public static void unpack(Path archive, Path tempFolder) throws IOException{
 		//TODO code me
-	}
-	
-	private boolean checkAvailableSpace(long archiveSize, Path destination){
-		return false;
 	}
 }
