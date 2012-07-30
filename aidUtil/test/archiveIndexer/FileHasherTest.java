@@ -17,20 +17,55 @@
  */
 package archiveIndexer;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import module.FileHasher;
+
+import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class FileHasherTest {
+import file.FileInfo;
 
+public class FileHasherTest {
+	LinkedBlockingQueue<FileInfo> input , output;
+	FileHasher fileHasher;
+	static Path testFile;
+	
+	final String expectedTestHash = "0366D5B16D1FF872CEA48E81965D07F526D2D1175DC72FA973830391D0DC095D";
+	 
+	
+	@BeforeClass
+	public static void before() throws Exception{
+		testFile = Paths.get(ArchiveUnpackerTest.class.getResource("test.7z").toURI());
+	}
+	
 	@Before
 	public void setUp() throws Exception {
+		input = new LinkedBlockingQueue<>();
+		output = new LinkedBlockingQueue<>();
+		fileHasher = new FileHasher(input,output);
+		fileHasher.start();
+	}
+	
+	@After
+	public void tearDown() throws Exception {
+		fileHasher.interrupt();
 	}
 
 	@Test
-	public void testWork() {
-		fail("Not yet implemented");
+	public void testWork() throws Exception{
+		input.add(new FileInfo(testFile));
+		
+		Thread.sleep(500);
+		
+		assertThat(output.size(), is(1));
+		assertThat(output.poll().getHash(), is(expectedTestHash));
 	}
-
 }
