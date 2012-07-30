@@ -21,6 +21,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.matchers.JUnitMatchers.hasItems;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -29,13 +30,22 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 import module.ArchiveUnpacker;
+import module.UnpackException;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class ArchiveUnpackerTest {
 	Path tempFolder;
+	static Path testArchive, invalidArchive;
 	final String[] expectedFilenames = {"foo.txt", "bar.jpg", "foobar.doc"};
+	
+	@BeforeClass
+	public static void SetUpClass() throws URISyntaxException {
+		testArchive = Paths.get(ArchiveUnpackerTest.class.getResource("test.7z").toURI());
+		invalidArchive = Paths.get(ArchiveUnpackerTest.class.getResource("invalid.rar").toURI());
+	}
 	
 	@Before
 	public void setUp() throws Exception {
@@ -43,14 +53,27 @@ public class ArchiveUnpackerTest {
 	}
 
 	@Test
-	public void testUnpackArchive() throws URISyntaxException, IOException {
-		Path testArchive = Paths.get(ArchiveUnpackerTest.class.getResource("test.7z").toURI());
-
+	public void testUnpackArchive() throws IOException {
 		assertTrue(Files.exists(testArchive));
-		ArchiveUnpacker.unpack(testArchive, tempFolder);
 		
+		ArchiveUnpacker.unpack(testArchive, tempFolder);
 		String[] unpackedFiles = tempFolder.toFile().list();
 		
 		assertThat(Arrays.asList(unpackedFiles), hasItems(expectedFilenames));
+	}
+	
+	@Test(expected=FileNotFoundException.class)
+	public void testInvalidArchivePath() throws IOException {
+		ArchiveUnpacker.unpack(Paths.get("foobar"), tempFolder);
+	}
+	
+	@Test(expected=FileNotFoundException.class)
+	public void testInvalidDestination() throws IOException {
+		ArchiveUnpacker.unpack(testArchive, Paths.get("foobar"));
+	}
+	
+	@Test(expected=UnpackException.class)
+	public void testInvalidArchive() throws UnpackException, IOException {
+		ArchiveUnpacker.unpack(invalidArchive, tempFolder);
 	}
 }
