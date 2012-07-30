@@ -17,20 +17,67 @@
  */
 package archiveIndexer;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.hamcrest.CoreMatchers.*;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedList;
+
+import module.FileDeleter;
 
 import org.junit.Before;
 import org.junit.Test;
 
 public class FileDeleterTest {
-
+	Path testDirectory, baseDirectory;
+	
 	@Before
 	public void setUp() throws Exception {
+		baseDirectory = Files.createTempDirectory("FileDeleterTest");
+		testDirectory = createTestDirectory(baseDirectory);
 	}
 
 	@Test
 	public void testDeleteAll() {
-		fail("Not yet implemented");
+		assertTrue(Files.exists(testDirectory));
+		assertTrue(Files.exists(testDirectory.resolve("dirA").resolve("bar.txt")));
+		
+		FileDeleter.deleteAll(testDirectory);
+		
+		assertTrue(Files.exists(testDirectory));
+		assertThat(testDirectory.toFile().list().length, is(0));
 	}
-
+	
+	private Path createTestDirectory(Path baseDirectory) throws IOException{
+		LinkedList<Path> directories = new LinkedList<>();
+		LinkedList<Path> files = new LinkedList<>();
+		
+		Path testDir = baseDirectory.resolve("foobar");
+		
+		Path file1 = testDir.resolve("dir1").resolve("bar.txt");
+		Path file2 = file1.getParent().resolve("dirA").resolve("foo.txt");
+		Path file3 = testDir.resolve("dir2").resolve("dirD").resolve("dirE").resolve("foobar.txt");
+		
+		files.add(file1);
+		files.add(file2);
+		files.add(file3);
+		
+		directories.add(file2.getParent());
+		directories.add(file3.getParent());
+		
+		for(Path dirPath : directories){
+			Files.createDirectories(dirPath);
+		}
+		
+		for(Path filePath : files){
+			Files.createFile(filePath);
+		}
+		
+		return testDir;
+	}
 }
