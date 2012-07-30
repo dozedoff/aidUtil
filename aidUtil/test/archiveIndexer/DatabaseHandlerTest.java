@@ -52,11 +52,11 @@ import config.DefaultMySQLconnection;
 
 public class DatabaseHandlerTest extends DatabaseTestCase{
 	final String DataBaseHandler_PATH = "/dbData/DatabaseHandlerTestData.xml";
-	final String dnwAddData_PATH = "dbData/DnwAddTestData.xml";
-	final String indexAddArchiveData_PATH = "dbData/IndexAddTestData.xml";
-	final String indexAddArchiveExistingFileData_PATH = "dbData/IndexAddArchiveExistingFileTestData.xml";
-	final String indexAddArchiveExistingArchiveData_PATH = "dbData/IndexAddArchiveExistingArchiveTestData.xml";
-	final String INDEX_TABLE = "index", DNW_TABLE = "dnw";
+	final String dnwAddData_PATH = "/dbData/DnwAddTestData.xml";
+	final String indexAddArchiveData_PATH = "/dbData/IndexAddArchiveTestData.xml";
+	final String indexAddArchiveExistingFileData_PATH = "/dbData/IndexAddArchiveExistingFileTestData.xml";
+	final String indexAddArchiveExistingArchiveData_PATH = "/dbData/IndexAddArchiveExistingArchiveTestData.xml";
+	final String INDEX_TABLE = "fileindex", DNW_TABLE = "dnw", DUPLICATE_TABLE = "fileduplicate";
 			
 	DatabaseHandler dbh;
 	BoneConnectionPool bcp;
@@ -98,8 +98,8 @@ public class DatabaseHandlerTest extends DatabaseTestCase{
 		IDataSet expectedDataSet = getFileDataSet(indexAddArchiveExistingFileData_PATH);
 		IDataSet actualDataSet = getDatabaseDataSet();
 		
-		Assertion.assertEquals(expectedDataSet.getTable("index"), actualDataSet.getTable("index"));
-		Assertion.assertEquals(expectedDataSet.getTable("dnw"), actualDataSet.getTable("dnw"));
+		Assertion.assertEquals(expectedDataSet.getTable(INDEX_TABLE), actualDataSet.getTable(INDEX_TABLE));
+		Assertion.assertEquals(expectedDataSet.getTable(DNW_TABLE), actualDataSet.getTable(DNW_TABLE));
 	}
 	
 	@Test
@@ -109,8 +109,8 @@ public class DatabaseHandlerTest extends DatabaseTestCase{
 		IDataSet expectedDataSet = getCompositeFileDataset(DataBaseHandler_PATH, indexAddArchiveExistingArchiveData_PATH);
 		IDataSet actualDataSet = getDatabaseDataSet();
 		
-		Assertion.assertEquals(expectedDataSet.getTable("index"), actualDataSet.getTable("index"));
-		Assertion.assertEquals(expectedDataSet.getTable("dnw"), actualDataSet.getTable("dnw"));
+		Assertion.assertEquals(expectedDataSet.getTable(INDEX_TABLE), actualDataSet.getTable(INDEX_TABLE));
+		Assertion.assertEquals(expectedDataSet.getTable(DUPLICATE_TABLE), actualDataSet.getTable(DUPLICATE_TABLE));
 	}
 	
 	private void addIndex(String id){
