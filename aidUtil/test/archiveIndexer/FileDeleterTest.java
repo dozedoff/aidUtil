@@ -17,15 +17,14 @@
  */
 package archiveIndexer;
 
-import static org.junit.Assert.assertFalse;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.hamcrest.CoreMatchers.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 
 import module.FileDeleter;
@@ -43,14 +42,20 @@ public class FileDeleterTest {
 	}
 
 	@Test
-	public void testDeleteAll() {
+	public void testDeleteAll() throws IOException {
+		// sanity checks
 		assertTrue(Files.exists(testDirectory));
-		assertTrue(Files.exists(testDirectory.resolve("dirA").resolve("bar.txt")));
+		assertTrue(Files.exists(testDirectory.resolve("dir1").resolve("bar.txt")));
 		
 		FileDeleter.deleteAll(testDirectory);
 		
 		assertTrue(Files.exists(testDirectory));
 		assertThat(testDirectory.toFile().list().length, is(0));
+	}
+	
+	@Test(expected=IOException.class)
+	public void testDeleteInvalidPath() throws IOException {
+		FileDeleter.deleteAll(Paths.get("\\foobar\\"));
 	}
 	
 	private Path createTestDirectory(Path baseDirectory) throws IOException{
