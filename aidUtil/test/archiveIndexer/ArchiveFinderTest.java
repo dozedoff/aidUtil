@@ -24,6 +24,7 @@ import static org.junit.matchers.JUnitMatchers.hasItems;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
@@ -50,7 +51,7 @@ public class ArchiveFinderTest {
 		assertThat(foundArchives, hasItems(archives.toArray(new Path[0])));
 	}
 	
-	@Test(expected=FileNotFoundException.class)
+	@Test(expected=NoSuchFileException.class)
 	public void testInvalidPath() throws IOException{
 		ArchiveFinder.find(Paths.get("non-existant"));
 	}

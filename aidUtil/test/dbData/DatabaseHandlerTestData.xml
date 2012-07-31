@@ -25,4 +25,7 @@
 	<fileduplicate id="20" size="790332" 	dir="2" filename="2" location="1"/>
 	<fileduplicate id="30" size="5789699" 	dir="3" filename="3" location="2"/>
 	<fileduplicate id="40" size="542322" 	dir="3" filename="2" location="2"/>
+	
+	<!--DNW Table -->
+	<dnw id="00"/>
 </dataset>

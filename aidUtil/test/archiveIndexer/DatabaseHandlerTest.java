@@ -35,15 +35,18 @@ import module.DatabaseHandler;
 import org.dbunit.Assertion;
 import org.dbunit.DBTestCase;
 import org.dbunit.DatabaseTestCase;
+import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.CompositeDataSet;
+import org.dbunit.dataset.CompositeTable;
 import org.dbunit.dataset.DataSetException;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.IRowValueProvider;
 import org.dbunit.dataset.ITable;
 import org.dbunit.dataset.RowFilterTable;
 import org.dbunit.dataset.filter.IRowFilter;
+import org.dbunit.ext.mysql.MySqlDataTypeFactory;
 import org.dbunit.util.fileloader.FlatXmlDataFileLoader;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,42 +78,31 @@ public class DatabaseHandlerTest extends DatabaseTestCase{
 		FileInfo fi = new FileInfo(new File(""), "1");
 		dbh.addDnw(fi);
 		
-		IDataSet expectedDataset = getCompositeFileDataset(DataBaseHandler_PATH, dnwAddData_PATH);
-		IDataSet actualDataset = getDatabaseDataSet();
-		
-		Assertion.assertEquals(expectedDataset, actualDataset);
+		Assertion.assertEquals(getCompositeFileTable(DNW_TABLE, DataBaseHandler_PATH, dnwAddData_PATH), getDatabaseTable(DNW_TABLE));
+		Assertion.assertEquals(getCompositeFileTable(INDEX_TABLE, DataBaseHandler_PATH, dnwAddData_PATH), getDatabaseTable(INDEX_TABLE));
 	}
 	
 	@Test
 	public void testAddIndexNewArchiveEntry() throws Exception {
-		addIndex("2");
+		addIndex("5");
 		
-		IDataSet expectedDataset = getCompositeFileDataset(DataBaseHandler_PATH, indexAddArchiveData_PATH);
-		IDataSet actualDataset = getDatabaseDataSet();
-		
-		Assertion.assertEquals(expectedDataset, actualDataset);
+		Assertion.assertEquals(getCompositeFileTable(INDEX_TABLE, DataBaseHandler_PATH, indexAddArchiveData_PATH), getDatabaseTable(INDEX_TABLE));
 	}
 	
 	@Test
 	public void testAddIndexExistingFileNewArchiveEntry() throws Exception {
 		addIndex("4");
 		
-		IDataSet expectedDataSet = getFileDataSet(indexAddArchiveExistingFileData_PATH);
-		IDataSet actualDataSet = getDatabaseDataSet();
-		
-		Assertion.assertEquals(expectedDataSet.getTable(INDEX_TABLE), actualDataSet.getTable(INDEX_TABLE));
-		Assertion.assertEquals(expectedDataSet.getTable(DNW_TABLE), actualDataSet.getTable(DNW_TABLE));
+		Assertion.assertEquals(getCompositeFileTable(INDEX_TABLE, indexAddArchiveExistingFileData_PATH), getDatabaseTable(INDEX_TABLE));
+		Assertion.assertEquals(getCompositeFileTable(DUPLICATE_TABLE, indexAddArchiveExistingFileData_PATH), getDatabaseTable(DUPLICATE_TABLE));
 	}
 	
 	@Test
 	public void testAddIndexExistingArchiveNewArchiveEntry() throws Exception {
-		addIndex("4");
+		addIndex("3");
 		
-		IDataSet expectedDataSet = getCompositeFileDataset(DataBaseHandler_PATH, indexAddArchiveExistingArchiveData_PATH);
-		IDataSet actualDataSet = getDatabaseDataSet();
-		
-		Assertion.assertEquals(expectedDataSet.getTable(INDEX_TABLE), actualDataSet.getTable(INDEX_TABLE));
-		Assertion.assertEquals(expectedDataSet.getTable(DUPLICATE_TABLE), actualDataSet.getTable(DUPLICATE_TABLE));
+		Assertion.assertEquals(getCompositeFileTable(INDEX_TABLE, DataBaseHandler_PATH, indexAddArchiveExistingArchiveData_PATH), getDatabaseTable(INDEX_TABLE));
+		Assertion.assertEquals(getCompositeFileTable(DUPLICATE_TABLE, indexAddArchiveExistingArchiveData_PATH), getDatabaseTable(DUPLICATE_TABLE));
 	}
 	
 	private void addIndex(String id){
@@ -124,9 +116,13 @@ public class DatabaseHandlerTest extends DatabaseTestCase{
 	@Override
 	protected IDatabaseConnection getConnection() throws Exception {
 		Class.forName("com.mysql.jdbc.Driver"); 
+		
 		Connection jdbcConnection = DriverManager.getConnection( "jdbc:mysql://localhost/test","test", "test"); 
-
-		return new DatabaseConnection(jdbcConnection);
+		DatabaseConnection dbConn = new DatabaseConnection(jdbcConnection);
+		
+		dbConn.getConfig().setProperty("http://www.dbunit.org/properties/datatypeFactory", new MySqlDataTypeFactory());
+		
+		return dbConn;
 	}
 
 	@Override
@@ -135,7 +131,7 @@ public class DatabaseHandlerTest extends DatabaseTestCase{
 
 		return dataSet;
 	}
-
+	
 	private ITable getDatabaseTable(String tableName) throws SQLException, Exception{
 		IDataSet databaseDataSet = getConnection().createDataSet();
 		return databaseDataSet.getTable(tableName);
@@ -155,8 +151,19 @@ public class DatabaseHandlerTest extends DatabaseTestCase{
 		return getConnection().createDataSet();
 	}
 	
-	private ITable getCompositeFileTable(String tableName, String... fileName) throws DataSetException{
-		return getCompositeFileDataset(fileName).getTable(tableName);
+	private ITable getCompositeFileTable(String tableName, String... fileName) throws MalformedURLException, DataSetException{
+		ITable compositeTable = null;
+		
+		for(String file : fileName){
+			if(compositeTable == null){
+				compositeTable = getFileTable(tableName, file);
+				continue;
+			}
+			
+			ITable table = getFileTable(tableName, file);
+			compositeTable = new CompositeTable(compositeTable, table);
+		}
+		return compositeTable;
 	}
 	
 	private IDataSet getCompositeFileDataset(String... fileName) throws DataSetException{

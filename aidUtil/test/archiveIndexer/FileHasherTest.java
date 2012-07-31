@@ -38,7 +38,7 @@ public class FileHasherTest {
 	FileHasher fileHasher;
 	static Path testFile;
 	
-	final String expectedTestHash = "0366D5B16D1FF872CEA48E81965D07F526D2D1175DC72FA973830391D0DC095D";
+	final String expectedTestHash = "4120B987CF940DAC04632C27FDC072479FD519016D1085DE1CC2A4980D3041BF";
 	 
 	
 	@BeforeClass
