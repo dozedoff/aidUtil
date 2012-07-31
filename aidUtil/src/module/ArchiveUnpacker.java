@@ -17,11 +17,57 @@
  */
 package module;
 
+import io.StreamGobbler;
+
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
+import thread.ProcessWatchDog;
 public class ArchiveUnpacker {
-	public static void unpack(Path archive, Path tempFolder) throws IOException{
-		//TODO code me
+	Path sevenZipAppPath;
+	final long TIMEOUT = 3 * 60 * 1000;
+	
+	public ArchiveUnpacker(Path sevenZipAppPath) {
+		this.sevenZipAppPath = sevenZipAppPath;
+	}
+
+	public  void unpack(Path archive, Path tempFolder) throws IOException, UnpackException{
+		if(! Files.exists(archive)){
+			throw new FileNotFoundException("Source file not Found");
+		}
+
+		if(! Files.exists(tempFolder)){
+			throw new FileNotFoundException("Destination folder not Found");
+		}
+
+		
+		// -aos: skip if dest exists -y: answer yes to all -o: output directory -r: recursive -Pfoobar: use password foobar
+		String command = sevenZipAppPath + "\\7z x \""+archive.toString()+"\" -aos -y -o\""+tempFolder.toString()+"\" -r -pfoobar";
+		
+		Process process = Runtime.getRuntime().exec(command);
+		ProcessWatchDog watchDog =  new ProcessWatchDog(command, process, TIMEOUT);
+		
+		watchDog.start();
+
+		StreamGobbler sge = new StreamGobbler(process.getErrorStream(), "ERROR");
+		StreamGobbler sgo = new StreamGobbler(process.getInputStream(), "OUT");
+
+		sge.start();
+		sgo.start();
+		
+		try {sge.join();} catch (InterruptedException e) {}
+		try {sgo.join();} catch (InterruptedException e) {}
+
+		// catch App hangs
+		
+		try {process.waitFor();} catch (InterruptedException e) {}
+		
+		watchDog.interrupt();
+		
+		if(process.exitValue() != 0){
+			throw new UnpackException(process.exitValue(), archive);
+		}
 	}
 }

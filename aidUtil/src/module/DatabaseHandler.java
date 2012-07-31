@@ -17,14 +17,41 @@
  */
 package module;
 
+import io.AidDAO;
+import io.AidTables;
+import io.ConnectionPool;
 import file.FileInfo;
 
 public class DatabaseHandler {
+	AidDAO sql;
+	final String ARCHIVE_LOCATION_TAG = "ARCHIVE";
+	
+	public DatabaseHandler(ConnectionPool connPool) {
+		this.sql = new AidDAO(connPool);
+	}
+
 	public void addIndex(FileInfo fileInfo){
-		//TODO code me
+		String id = fileInfo.getHash();
+		
+		if(! sql.isHashed(id)){
+			sql.addIndex(fileInfo, ARCHIVE_LOCATION_TAG);
+			return;
+		}
+		
+		if(! isArchived(id)){
+			sql.moveIndexToDuplicate(id);
+			sql.addIndex(fileInfo, ARCHIVE_LOCATION_TAG);
+		}else{
+			sql.addDuplicate(id, fileInfo.getFilePath().toString(), fileInfo.getSize(), ARCHIVE_LOCATION_TAG);
+		}
+	}
+	
+	private boolean isArchived(String id){
+		String locDbTag = sql.getLocationById(id);
+		return locDbTag.toLowerCase().equals(ARCHIVE_LOCATION_TAG.toLowerCase());
 	}
 	
 	public void addDnw(FileInfo fileInfo){
-		//TODO code me
+		sql.update(fileInfo.getHash(), AidTables.Dnw);
 	}
 }

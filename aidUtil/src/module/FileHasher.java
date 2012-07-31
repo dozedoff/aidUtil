@@ -17,20 +17,42 @@
  */
 package module;
 
-import java.nio.file.Path;
-import java.util.AbstractQueue;
+import hash.HashMaker;
 
-import io.SimpleConcurrentWorker;
+import java.io.IOException;
+import java.util.concurrent.LinkedBlockingQueue;
 
-public class FileHasher extends SimpleConcurrentWorker<Path, String>{
-	public FileHasher() {
+import file.BinaryFileReader;
+import file.FileInfo;
+
+public class FileHasher extends Thread{
+	LinkedBlockingQueue<FileInfo> inputQueue, outputQueue;
+	HashMaker hashMaker = new HashMaker();
+	BinaryFileReader binaryFileReader = new BinaryFileReader();
+	
+	public FileHasher(LinkedBlockingQueue<FileInfo> inputQueue, LinkedBlockingQueue<FileInfo> outputQueue) {
 		super("FileHasher");
+		this.inputQueue = inputQueue;
+		this.outputQueue = outputQueue;
+	}
+
+	@Override
+	public void run() {
+		try {
+			hashFiles();
+		} catch (InterruptedException e) {
+			interrupt();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
-	@Override
-	protected void work(AbstractQueue<Path> input, AbstractQueue<String> output) {
-		while(! isInterrupted()){
-			//TODO code me
+	public void hashFiles() throws InterruptedException, IOException{
+		FileInfo currentFile;
+		while(! interrupted()){
+			currentFile = inputQueue.take();
+			currentFile.setHash(hashMaker.hash(binaryFileReader.get(currentFile.getFile())));
+			outputQueue.put(currentFile);
 		}
 	}
 }

@@ -17,10 +17,39 @@
  */
 package module;
 
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 
 public class FileDeleter {
-	public static void deleteAll(Path directory){
-		//TODO code me
+	public static void deleteAll(Path directory) throws IOException{
+		Files.walkFileTree(directory, new DeleteVisitor(directory));
+	}
+}
+
+class DeleteVisitor extends SimpleFileVisitor<Path> {
+	Path startingDirectory;
+
+	public DeleteVisitor(Path startingDirectory) {
+		this.startingDirectory = startingDirectory;
+	}
+
+	@Override
+	public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+		Files.deleteIfExists(file);
+		return FileVisitResult.CONTINUE;
+	}
+	
+	@Override
+	public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+		if(dir.equals(startingDirectory)){
+			return FileVisitResult.CONTINUE;
+		}
+
+		Files.deleteIfExists(dir);
+		return FileVisitResult.CONTINUE;
 	}
 }

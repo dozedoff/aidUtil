@@ -20,15 +20,21 @@ package module;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 
 public class ArchiveFinder {
+	LinkedList<Path> archives;
+	
 	public static LinkedList<Path> find(Path directory) throws IOException{
 		LinkedList<Path> archives = new LinkedList<>();
-			//TODO code me
+		Files.walkFileTree(directory, new ArchiveVisitor(archives));
 		return archives;
 	}
 }
@@ -46,9 +52,9 @@ class ArchiveFilter implements FilenameFilter {
 	}
 	
 	@Override
-	public boolean accept(File arg0, String arg1) {
-		int extensionIndex = arg1.lastIndexOf(".");
-		String fileExtension = arg1.substring(extensionIndex).toLowerCase();
+	public boolean accept(File dir, String filename) {
+		int extensionIndex = filename.lastIndexOf(".") + 1;
+		String fileExtension = filename.substring(extensionIndex).toLowerCase();
 		
 		if(extensionIndex == -1){
 			return false;
@@ -59,5 +65,23 @@ class ArchiveFilter implements FilenameFilter {
 		}
 		
 		return false;
+	}
+}
+
+class ArchiveVisitor extends SimpleFileVisitor<Path> {
+	ArchiveFilter archiveFilter = new ArchiveFilter();
+	LinkedList<Path> archiveList;
+	
+	public ArchiveVisitor(LinkedList<Path> archiveList) {
+		this.archiveList = archiveList;
+	}
+
+	@Override
+	public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
+		if(archiveFilter.accept(null, file.getFileName().toString())){
+			archiveList.add(file);
+		}
+		
+		return FileVisitResult.CONTINUE;
 	}
 }
