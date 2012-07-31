@@ -20,6 +20,7 @@ package module;
 import hash.HashMaker;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import file.BinaryFileReader;
@@ -52,6 +53,7 @@ public class FileHasher extends Thread{
 		while(! interrupted()){
 			currentFile = inputQueue.take();
 			currentFile.setHash(hashMaker.hash(binaryFileReader.get(currentFile.getFile())));
+			currentFile.setSize(Files.size(currentFile.getFilePath()));
 			outputQueue.put(currentFile);
 		}
 	}

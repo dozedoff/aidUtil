@@ -63,9 +63,18 @@ public class FileHasherTest {
 	public void testWork() throws Exception{
 		input.add(new FileInfo(testFile));
 		
-		Thread.sleep(500);
+		Thread.sleep(200);
 		
 		assertThat(output.size(), is(1));
 		assertThat(output.poll().getHash(), is(expectedTestHash));
+	}
+	
+	@Test
+	public void testFileSize() throws Exception {
+		input.add(new FileInfo(testFile));
+		
+		Thread.sleep(200);
+		
+		assertThat(output.poll().getSize(), is(150L));
 	}
 }
