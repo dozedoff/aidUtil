@@ -17,54 +17,23 @@
  */
 package module;
 
-import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 
-public class ArchiveFinder {
+import filefilter.ArchiveFilter;
+
+public abstract class ArchiveFinder {
 	LinkedList<Path> archives;
 	
 	public static LinkedList<Path> find(Path directory) throws IOException{
 		LinkedList<Path> archives = new LinkedList<>();
 		Files.walkFileTree(directory, new ArchiveVisitor(archives));
 		return archives;
-	}
-}
-
-class ArchiveFilter implements FilenameFilter {
-	final String[] vaildExtensions = {"7z", "XZ", "BZIP2", "GZIP", "TAR", "ZIP", "WIM", "ARJ", "CAB", "CHM", "CPIO", "CramFS", "DEB", "DMG", "FAT", "HFS", "ISO", "LZH", "LZMA", "MBR", "MSI", "NSIS", "NTFS", "RAR", "RPM", "SquashFS", "UDF", "VHD", "XAR", "Z"};
-	final ArrayList<String> vaildArchiveExtensions = new ArrayList<>(vaildExtensions.length);
-
-	public ArchiveFilter(){
-		for(String validExtension : vaildExtensions){
-			vaildArchiveExtensions.add(validExtension.toLowerCase());
-		}
-		
-		Collections.sort(vaildArchiveExtensions);
-	}
-	
-	@Override
-	public boolean accept(File dir, String filename) {
-		int extensionIndex = filename.lastIndexOf(".") + 1;
-		String fileExtension = filename.substring(extensionIndex).toLowerCase();
-		
-		if(extensionIndex == -1){
-			return false;
-		}
-		
-		if(Collections.binarySearch(vaildArchiveExtensions, fileExtension) >= 0){
-			return true;
-		}
-		
-		return false;
 	}
 }
 
