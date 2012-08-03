@@ -17,18 +17,20 @@
  */
 package module.duplicateViewer;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 class DuplicateEntry implements Comparable<DuplicateEntry>{
-	boolean selected = false;
-	Path path;
-	DuplicateGroup group;
-	
-	String hash;
-	
-	public DuplicateEntry(String hash, Path path) {
+	private boolean selected = false;
+	private DuplicateGroup group;
+	private String hash;
+	private Path path;
+	private long lastModified;
+
+	public DuplicateEntry(String hash, Path path, long lastModified) {
 		this.path = path;
 		this.hash = hash;
+		this.lastModified = lastModified;
 	}
 
 	public Path getPath() {
@@ -44,6 +46,10 @@ class DuplicateEntry implements Comparable<DuplicateEntry>{
 	}
 	
 	public boolean isSelected(){
+		if(! sourceExists()){
+			selected = false;
+		}
+		
 		return selected;
 	}
 	
@@ -53,6 +59,14 @@ class DuplicateEntry implements Comparable<DuplicateEntry>{
 
 	public void setGroup(DuplicateGroup group) {
 		this.group = group;
+	}
+	
+	public long getLastModified() {
+		return lastModified;
+	}
+
+	private boolean sourceExists() {
+		return Files.exists(path);
 	}
 
 	@Override

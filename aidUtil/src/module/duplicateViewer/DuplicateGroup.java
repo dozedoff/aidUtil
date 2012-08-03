@@ -30,7 +30,10 @@ class DuplicateGroup {
 
 	public DuplicateGroup() {
 		this.groupId = groupRunningNumber++;
-		
+		setColor();
+	}
+	
+	private void setColor() {
 		if(groupId % 2 == 0){
 			color = Color.black;
 		}else{
@@ -46,15 +49,39 @@ class DuplicateGroup {
 		entries.remove(de);
 	}
 	
-	public int getSize(){
+	public int getSize() {
 		return entries.size();
 	}
 	
-	public LinkedList<DuplicateEntry> getEntries(){
+	public LinkedList<DuplicateEntry> getEntries() {
 		return entries;
 	}
 
 	public Color getColor() {
 		return color;
 	}
+
+	public int getGroupId() {
+		return groupId;
+	}
+	
+	public boolean areAllSelected() {
+		boolean allSelected = true;
+		
+		for(DuplicateEntry entry : entries){
+			allSelected = allSelected && entry.isSelected();
+		}
+		
+		return allSelected;
+	}
+	
+	public boolean hasOnlyOneEntry() {
+		return entries.size() == 1;
+	}
+	
+	public boolean isEmpty() {
+		return entries.isEmpty();
+	}
+	
+	
 }

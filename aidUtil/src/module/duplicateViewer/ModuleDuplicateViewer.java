@@ -211,9 +211,11 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 			String hash = s[0];
 			
 			if(tagMap.get(s[1]) != null){
-				de = new DuplicateEntry(hash, tagMap.get(s[1]).resolve(s[2])); // absolute path (tag found)
+				//TODO add file size instead of 0
+				de = new DuplicateEntry(hash, tagMap.get(s[1]).resolve(s[2]), 0); // absolute path (tag found)
 			} else {
-				de = new DuplicateEntry(hash, Paths.get(s[2])); // relative path (tag not found)
+				//TODO add file size instead of 0
+				de = new DuplicateEntry(hash, Paths.get(s[2]), 0); // relative path (tag not found)
 			}
 			
 			dupeList.add(de);
