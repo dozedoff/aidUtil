@@ -22,7 +22,7 @@ import static org.junit.Assert.assertThat;
 
 import java.nio.file.Paths;
 
-import module.PathRewriter;
+import module.archiveIndexer.PathRewriter;
 
 import org.junit.Before;
 import org.junit.Test;

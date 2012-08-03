@@ -29,7 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 
-import module.ArchiveFinder;
+import module.archiveIndexer.ArchiveFinder;
 
 import org.junit.Before;
 import org.junit.Test;

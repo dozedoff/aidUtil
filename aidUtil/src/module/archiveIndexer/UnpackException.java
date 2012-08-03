@@ -1,4 +1,4 @@
-package module;
+package module.archiveIndexer;
 
 import java.nio.file.Path;
 

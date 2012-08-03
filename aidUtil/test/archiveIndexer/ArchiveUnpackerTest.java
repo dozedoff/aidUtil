@@ -29,8 +29,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Properties;
 
-import module.ArchiveUnpacker;
-import module.UnpackException;
+import module.archiveIndexer.ArchiveUnpacker;
+import module.archiveIndexer.UnpackException;
 
 import org.junit.Before;
 import org.junit.BeforeClass;

@@ -27,7 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 
-import module.FileDeleter;
+import module.archiveIndexer.FileDeleter;
 
 import org.junit.Before;
 import org.junit.Test;

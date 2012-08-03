@@ -15,26 +15,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package module;
+package module.archiveIndexer;
 
 import java.nio.file.Path;
 
-import file.FileInfo;
-
-public class ArchiveFile {
-	private final Path archivePath;
-	private final FileInfo fileInfo;
-
-	public ArchiveFile(FileInfo fileInfo, Path archivePath) {
-		this.fileInfo = fileInfo;
-		this.archivePath = archivePath;
+public class PathRewriter {
+	Path tempDirectory;
+	
+	public PathRewriter(Path tempDirectory) {
+		this.tempDirectory = tempDirectory;
 	}
 
-	public Path getArchivePath() {
-		return archivePath;
-	}
-
-	public FileInfo getFileInfo() {
-		return fileInfo;
+	public Path reWritePath(Path sourcePath, Path archivePath) {
+		Path reWritten = null;
+		
+		Path relativeSource = tempDirectory.relativize(sourcePath);
+		reWritten = archivePath.resolve(relativeSource);
+		
+		return reWritten;
 	}
 }
