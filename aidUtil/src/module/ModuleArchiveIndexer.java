@@ -105,6 +105,8 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 		
 		LinkedList<Path> images;
 		
+		info("Starting to index archives...");
+		
 		for(Path archive : foundArchives){
 			unpackArchive(archive, tempFolder);
 			images = findImages(tempFolder);
@@ -112,10 +114,13 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 			hashFiles();
 			deleteFilesInTempDir(tempFolder);
 		}
+		
+		info("Finished indexing, " + foundArchives.size() + "archives processed");
 	}
 	
 	private void unpackArchive(Path archive, Path tempFolder) {
 		try {
+			info("Unpacking " + archive.getFileName().toString());
 			unpacker.unpack(archive, tempFolder);
 		} catch (Exception e) {
 			error("Failed to unpack archive: " + e.getMessage());
