@@ -47,7 +47,7 @@ class ArchiveVisitor extends SimpleFileVisitor<Path> {
 
 	@Override
 	public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
-		if(archiveFilter.accept(null, file.getFileName().toString())){
+		if(archiveFilter.accept(file.toFile())){
 			archiveList.add(file);
 		}
 		
