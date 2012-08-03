@@ -13,5 +13,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/SLF4J"/>
 	<classpathentry kind="con" path="org.eclipse.datatools.connectivity.jdt.DRIVERLIBRARY/MySQL JDBC Driver"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/DbUnit"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/jsoup"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

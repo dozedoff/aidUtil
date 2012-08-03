@@ -33,7 +33,7 @@ public abstract class MaintenanceModule {
 	private JTextArea logArea;
 	private ConnectionPool pool;
 	private JTextField path, status;
-	protected String moduleName;
+	private String moduleName;
 	
 	/**
 	 * Specify a container where modules can add additional components
@@ -115,6 +115,10 @@ public abstract class MaintenanceModule {
 		}else{
 			return moduleName;
 		}
+	}
+	
+	public void setModuleName(String moduleName) {
+		this.moduleName = moduleName;
 	}
 
 	/**
