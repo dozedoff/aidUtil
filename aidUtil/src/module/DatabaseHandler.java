@@ -23,32 +23,36 @@ import io.ConnectionPool;
 import file.FileInfo;
 
 public class DatabaseHandler {
-	AidDAO sql;
-	final String ARCHIVE_LOCATION_TAG = "ARCHIVE";
+	private final AidDAO sql;
+	private final static String ARCHIVE_LOCATION_TAG = "ARCHIVE";
 	
 	public DatabaseHandler(ConnectionPool connPool) {
 		this.sql = new AidDAO(connPool);
 	}
 
 	public void addIndex(FileInfo fileInfo){
-		String id = fileInfo.getHash();
+		String fileHash = fileInfo.getHash();
 		
-		if(! sql.isHashed(id)){
+		if(! sql.isHashed(fileHash)){
 			sql.addIndex(fileInfo, ARCHIVE_LOCATION_TAG);
 			return;
 		}
 		
-		if(! isArchived(id)){
-			sql.moveIndexToDuplicate(id);
-			sql.addIndex(fileInfo, ARCHIVE_LOCATION_TAG);
+		if(isArchived(fileHash)){
+			sql.addDuplicate(fileHash, fileInfo.getFilePath().toString(), fileInfo.getSize(), ARCHIVE_LOCATION_TAG);
 		}else{
-			sql.addDuplicate(id, fileInfo.getFilePath().toString(), fileInfo.getSize(), ARCHIVE_LOCATION_TAG);
+			moveAndInsertIndex(fileInfo);
 		}
 	}
 	
-	private boolean isArchived(String id){
-		String locDbTag = sql.getLocationById(id);
-		return locDbTag.toLowerCase().equals(ARCHIVE_LOCATION_TAG.toLowerCase());
+	private boolean isArchived(String fileHash){
+		String locDbTag = sql.getLocationById(fileHash);
+		return locDbTag.equalsIgnoreCase(ARCHIVE_LOCATION_TAG);
+	}
+	
+	private void moveAndInsertIndex(FileInfo info){
+		sql.moveIndexToDuplicate(info.getHash());
+		sql.addIndex(info, ARCHIVE_LOCATION_TAG);
 	}
 	
 	public void addDnw(FileInfo fileInfo){

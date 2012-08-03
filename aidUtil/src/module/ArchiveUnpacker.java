@@ -26,8 +26,8 @@ import java.nio.file.Path;
 
 import thread.ProcessWatchDog;
 public class ArchiveUnpacker {
-	Path sevenZipAppPath;
-	final long TIMEOUT = 3 * 60 * 1000;
+	private final Path sevenZipAppPath;
+	private final long TIMEOUT = 3 * 60 * 1000;
 	
 	public ArchiveUnpacker(Path sevenZipAppPath) {
 		this.sevenZipAppPath = sevenZipAppPath;
