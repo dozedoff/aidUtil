@@ -17,21 +17,24 @@
  */
 package module;
 
+import java.nio.file.Path;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import file.FileInfo;
 
 public class DatabaseWorker extends Thread{
 	private final DatabaseHandler dbHandler;
-	private final LinkedBlockingQueue<FileInfo> inputQueue;
+	private final LinkedBlockingQueue<ArchiveFile> inputQueue;
 	private final OperationMode mode;
+	private final PathRewriter reWriter;
 	
 	public static enum OperationMode {AddToIndex, AddToDNW};
 	
-	public DatabaseWorker(DatabaseHandler dbHandler, LinkedBlockingQueue<FileInfo> inputQueue, OperationMode mode) {
+	public DatabaseWorker(DatabaseHandler dbHandler, LinkedBlockingQueue<ArchiveFile> inputQueue, PathRewriter reWriter, OperationMode mode) {
 		super("Database worker");
 		this.dbHandler = dbHandler;
 		this.inputQueue = inputQueue;
+		this.reWriter = reWriter;
 		this.mode = mode;
 	}
 	
@@ -46,7 +49,8 @@ public class DatabaseWorker extends Thread{
 	
 	private void doWork() throws InterruptedException {
 		while(! isInterrupted()){
-			FileInfo currentFile = inputQueue.take();
+			ArchiveFile archiveFile = inputQueue.take();
+			FileInfo currentFile = reWritePath(archiveFile);
 			addToDatabse(currentFile);
 		}
 	}
@@ -64,5 +68,14 @@ public class DatabaseWorker extends Thread{
 		default:
 			break;
 		}
+	}
+	
+	private FileInfo reWritePath(ArchiveFile archiveFile){
+		FileInfo info = archiveFile.getFileInfo();
+		Path archivePath = archiveFile.getArchivePath();
+		
+		info.setFile(reWriter.reWritePath(info.getFilePath(), archivePath));
+		
+		return info;
 	}
 }

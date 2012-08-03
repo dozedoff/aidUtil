@@ -27,11 +27,11 @@ import file.BinaryFileReader;
 import file.FileInfo;
 
 public class FileHasher extends Thread{
-	LinkedBlockingQueue<FileInfo> inputQueue, outputQueue;
+	LinkedBlockingQueue<ArchiveFile> inputQueue, outputQueue;
 	HashMaker hashMaker = new HashMaker();
 	BinaryFileReader binaryFileReader = new BinaryFileReader();
 	
-	public FileHasher(LinkedBlockingQueue<FileInfo> inputQueue, LinkedBlockingQueue<FileInfo> outputQueue) {
+	public FileHasher(LinkedBlockingQueue<ArchiveFile> inputQueue, LinkedBlockingQueue<ArchiveFile> outputQueue) {
 		super("FileHasher");
 		this.inputQueue = inputQueue;
 		this.outputQueue = outputQueue;
@@ -50,11 +50,14 @@ public class FileHasher extends Thread{
 	
 	public void hashFiles() throws InterruptedException, IOException{
 		FileInfo currentFile;
+		ArchiveFile archiveFile;
+		
 		while(! interrupted()){
-			currentFile = inputQueue.take();
+			archiveFile = inputQueue.take();
+			currentFile = archiveFile.getFileInfo();
 			currentFile.setHash(hashMaker.hash(binaryFileReader.get(currentFile.getFile())));
 			currentFile.setSize(Files.size(currentFile.getFilePath()));
-			outputQueue.put(currentFile);
+			outputQueue.put(archiveFile);
 		}
 	}
 }

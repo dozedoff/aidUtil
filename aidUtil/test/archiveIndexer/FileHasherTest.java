@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import module.ArchiveFile;
 import module.FileHasher;
 
 import org.junit.After;
@@ -34,9 +35,11 @@ import org.junit.Test;
 import file.FileInfo;
 
 public class FileHasherTest {
-	LinkedBlockingQueue<FileInfo> input , output;
+	LinkedBlockingQueue<ArchiveFile> input , output;
 	FileHasher fileHasher;
 	static Path testFile;
+	static ArchiveFile archiveFile;
+	
 	
 	final String expectedTestHash = "4120B987CF940DAC04632C27FDC072479FD519016D1085DE1CC2A4980D3041BF";
 	 
@@ -44,6 +47,7 @@ public class FileHasherTest {
 	@BeforeClass
 	public static void before() throws Exception{
 		testFile = Paths.get(ArchiveUnpackerTest.class.getResource("test.7z").toURI());
+		archiveFile = new ArchiveFile(new FileInfo(testFile), null);
 	}
 	
 	@Before
@@ -61,20 +65,20 @@ public class FileHasherTest {
 
 	@Test
 	public void testWork() throws Exception{
-		input.add(new FileInfo(testFile));
+		input.add(archiveFile);
 		
 		Thread.sleep(200);
 		
 		assertThat(output.size(), is(1));
-		assertThat(output.poll().getHash(), is(expectedTestHash));
+		assertThat(output.poll().getFileInfo().getHash(), is(expectedTestHash));
 	}
 	
 	@Test
 	public void testFileSize() throws Exception {
-		input.add(new FileInfo(testFile));
+		input.add(archiveFile);
 		
 		Thread.sleep(200);
 		
-		assertThat(output.poll().getSize(), is(150L));
+		assertThat(output.poll().getFileInfo().getSize(), is(150L));
 	}
 }
