@@ -20,7 +20,6 @@ package module.duplicateViewer;
 import io.AidDAO;
 import io.AidTables;
 
-import java.awt.Color;
 import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.Image;
@@ -39,7 +38,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
-import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -257,108 +255,5 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		
 		info(duplicates + " duplicates in " + groups.size() + " groups.");
 		duplicateList.addListSelectionListener(selectionListener);
-	}
-	
-	class DuplicateEntry implements Comparable<DuplicateEntry>{
-		private static final long serialVersionUID = 1L;
-		boolean selected = false;
-		Path path;
-		DuplicateGroup group;
-		
-		String hash;
-		
-		public DuplicateEntry(String hash, Path path) {
-			this.path = path;
-			this.hash = hash;
-		}
-
-		public Path getPath() {
-			return path;
-		}
-		
-		public String getHash() {
-			return hash;
-		}
-
-		public void setSelected(boolean selected){
-			this.selected = selected;
-		}
-		
-		public boolean isSelected(){
-			return selected;
-		}
-		
-		public DuplicateGroup getGroup() {
-			return group;
-		}
-
-		public void setGroup(DuplicateGroup group) {
-			this.group = group;
-		}
-
-		@Override
-		public int compareTo(DuplicateEntry o) {
-			return this.hash.compareTo(o.getHash());
-		}
-		
-		@Override
-		public String toString() {
-			return path.toString();
-		}
-		
-		@Override
-		public boolean equals(Object obj) {
-			if(obj == null || !(obj instanceof DuplicateEntry)){
-				return false;
-			}
-			
-			return ((DuplicateEntry)obj).getHash().equals(getHash());
-		}
-	}
-	
-	static class DuplicateGroup {
-		static int groupRunningNumber = 0;
-		
-		int groupId;
-		Color color;
-		
-		LinkedList<DuplicateEntry> entries = new LinkedList<>();
-
-		public DuplicateGroup() {
-			this.groupId = groupRunningNumber++;
-			
-			if(groupId % 2 == 0){
-				color = Color.black;
-			}else{
-				color = Color.blue;
-			}
-		}
-		
-		public void addEntry(DuplicateEntry de){
-			entries.add(de);
-		}
-		
-		public void removeEntry(DuplicateEntry de){
-			entries.remove(de);
-		}
-		
-		public int getSize(){
-			return entries.size();
-		}
-		
-		public LinkedList<DuplicateEntry> getEntries(){
-			return entries;
-		}
-
-		public Color getColor() {
-			return color;
-		}
-	}
-	
-
-	
-	class DuplicateListModel extends DefaultListModel<DuplicateEntry>{
-		private static final long serialVersionUID = 1L;
-		
 	}
 }
