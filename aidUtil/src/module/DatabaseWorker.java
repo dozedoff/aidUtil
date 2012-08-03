@@ -24,16 +24,16 @@ import file.FileInfo;
 
 public class DatabaseWorker extends Thread{
 	private final DatabaseHandler dbHandler;
-	private final LinkedBlockingQueue<ArchiveFile> inputQueue;
+	private final LinkedBlockingQueue<ArchiveFile> outputQueue;
 	private final OperationMode mode;
 	private final PathRewriter reWriter;
 	
 	public static enum OperationMode {AddToIndex, AddToDNW};
 	
-	public DatabaseWorker(DatabaseHandler dbHandler, LinkedBlockingQueue<ArchiveFile> inputQueue, PathRewriter reWriter, OperationMode mode) {
+	public DatabaseWorker(DatabaseHandler dbHandler, LinkedBlockingQueue<ArchiveFile> outputQueue, PathRewriter reWriter, OperationMode mode) {
 		super("Database worker");
 		this.dbHandler = dbHandler;
-		this.inputQueue = inputQueue;
+		this.outputQueue = outputQueue;
 		this.reWriter = reWriter;
 		this.mode = mode;
 	}
@@ -49,7 +49,7 @@ public class DatabaseWorker extends Thread{
 	
 	private void doWork() throws InterruptedException {
 		while(! isInterrupted()){
-			ArchiveFile archiveFile = inputQueue.take();
+			ArchiveFile archiveFile = outputQueue.take();
 			FileInfo currentFile = reWritePath(archiveFile);
 			addToDatabse(currentFile);
 		}

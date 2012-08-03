@@ -99,7 +99,7 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 		outputQueue = new LinkedBlockingQueue<>();
 		hasher = new FileHasher(inputQueue, outputQueue);
 		dbHandler = new DatabaseHandler(getConnectionPool());
-		dbWorker = new DatabaseWorker(dbHandler, inputQueue, new PathRewriter(tempFolder), getOpMode());
+		dbWorker = new DatabaseWorker(dbHandler, outputQueue, new PathRewriter(tempFolder), getOpMode());
 		
 		startThreads();
 		
@@ -109,6 +109,7 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 			unpackArchive(archive, tempFolder);
 			images = findImages(tempFolder);
 			addFilesToQueue(inputQueue, archive, images);
+			hashFiles();
 			deleteFilesInTempDir(tempFolder);
 		}
 	}
@@ -166,6 +167,16 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 			FileDeleter.deleteAll(path);
 		} catch (IOException e) {
 			error("Failed to clear temp directory: " + e.getMessage());
+		}
+	}
+	
+	private void hashFiles() {
+		try {
+			hasher.hashFiles();
+		} catch (InterruptedException e) {
+			
+		} catch (IOException e) {
+			error("Failed to hash file: " + e.getMessage());
 		}
 	}
 	

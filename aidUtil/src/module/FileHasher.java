@@ -17,14 +17,14 @@
  */
 package module;
 
+import file.BinaryFileReader;
+import file.FileInfo;
 import hash.HashMaker;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import file.BinaryFileReader;
-import file.FileInfo;
 
 public class FileHasher {
 	LinkedBlockingQueue<ArchiveFile> inputQueue, outputQueue;
@@ -43,9 +43,13 @@ public class FileHasher {
 		while(! inputQueue.isEmpty()){
 			archiveFile = inputQueue.take();
 			currentFile = archiveFile.getFileInfo();
-			currentFile.setHash(hashMaker.hash(binaryFileReader.get(currentFile.getFile())));
+			currentFile.setHash(hashFile(currentFile.getFilePath()));
 			currentFile.setSize(Files.size(currentFile.getFilePath()));
 			outputQueue.put(archiveFile);
 		}
+	}
+	
+	private String hashFile(Path filepath) throws IOException {
+		return hashMaker.hash(binaryFileReader.get(filepath.toFile()));
 	}
 }
