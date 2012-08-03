@@ -31,6 +31,8 @@ import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
+import app.Core;
+
 import module.DatabaseWorker.OperationMode;
 
 import file.FileInfo;
@@ -80,7 +82,7 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 		Path tempFolder, appPath;
 		
 		try {
-			aidUtilSettings.load(ModuleArchiveIndexer.class.getResourceAsStream("aidUtil.properties"));
+			aidUtilSettings.load(Core.class.getResourceAsStream("aidUtil.properties"));
 			foundArchives = ArchiveFinder.find(Paths.get(getPath()));
 		} catch (IOException e) {
 			// program
@@ -152,8 +154,11 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 	}
 	
 	private void startThreads() {
-		hasher.start();
 		dbWorker.start();
+	}
+	
+	private void stopThreads() {
+		dbWorker.interrupt();
 	}
 	
 	private void deleteFilesInTempDir(Path path) {

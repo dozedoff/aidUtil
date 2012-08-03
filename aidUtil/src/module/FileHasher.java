@@ -26,33 +26,21 @@ import java.util.concurrent.LinkedBlockingQueue;
 import file.BinaryFileReader;
 import file.FileInfo;
 
-public class FileHasher extends Thread{
+public class FileHasher {
 	LinkedBlockingQueue<ArchiveFile> inputQueue, outputQueue;
 	HashMaker hashMaker = new HashMaker();
 	BinaryFileReader binaryFileReader = new BinaryFileReader();
 	
 	public FileHasher(LinkedBlockingQueue<ArchiveFile> inputQueue, LinkedBlockingQueue<ArchiveFile> outputQueue) {
-		super("FileHasher");
 		this.inputQueue = inputQueue;
 		this.outputQueue = outputQueue;
-	}
-
-	@Override
-	public void run() {
-		try {
-			hashFiles();
-		} catch (InterruptedException e) {
-			interrupt();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	public void hashFiles() throws InterruptedException, IOException{
 		FileInfo currentFile;
 		ArchiveFile archiveFile;
 		
-		while(! interrupted()){
+		while(! inputQueue.isEmpty()){
 			archiveFile = inputQueue.take();
 			currentFile = archiveFile.getFileInfo();
 			currentFile.setHash(hashMaker.hash(binaryFileReader.get(currentFile.getFile())));

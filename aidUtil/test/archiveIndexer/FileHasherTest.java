@@ -55,19 +55,13 @@ public class FileHasherTest {
 		input = new LinkedBlockingQueue<>();
 		output = new LinkedBlockingQueue<>();
 		fileHasher = new FileHasher(input,output);
-		fileHasher.start();
 	}
 	
-	@After
-	public void tearDown() throws Exception {
-		fileHasher.interrupt();
-	}
-
 	@Test
-	public void testWork() throws Exception{
+	public void testHashFiles() throws Exception{
 		input.add(archiveFile);
 		
-		Thread.sleep(200);
+		fileHasher.hashFiles();
 		
 		assertThat(output.size(), is(1));
 		assertThat(output.poll().getFileInfo().getHash(), is(expectedTestHash));
@@ -77,7 +71,7 @@ public class FileHasherTest {
 	public void testFileSize() throws Exception {
 		input.add(archiveFile);
 		
-		Thread.sleep(200);
+		fileHasher.hashFiles();
 		
 		assertThat(output.poll().getFileInfo().getSize(), is(150L));
 	}
