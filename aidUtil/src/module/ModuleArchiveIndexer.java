@@ -40,7 +40,6 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 	static final String APP_PATH_KEY = "7zipAppPath";
 	
 	private ArchiveUnpacker unpacker;
-	private FileDeleter deleter;
 	private FileHasher hasher;
 	private DatabaseHandler dbHandler;
 	private DatabaseWorker dbWorker;
@@ -58,11 +57,14 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 		
 		tempPathField = new JTextField(20);
 		tempPathField.setToolTipText("Folder to use for unpacking archives");
+		container.add(tempPathField);
 		
 		indexMode = new JRadioButton("Index");
 		indexMode.setToolTipText("Add files to the file index");
+		container.add(indexMode);
 		dnwMode = new JRadioButton("DNW");
 		dnwMode.setToolTipText("Add files to the DNW list");
+		container.add(dnwMode);
 		
 		modeGroup = new ButtonGroup();
 		modeGroup.add(indexMode);
@@ -81,7 +83,8 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 			aidUtilSettings.load(ModuleArchiveIndexer.class.getResourceAsStream("aidUtil.properties"));
 			foundArchives = ArchiveFinder.find(Paths.get(getPath()));
 		} catch (IOException e) {
-			error(e.getMessage());
+			// program
+			error("Failed to load aidUtil.properties: " + e.getMessage());
 			return;
 		}
 		
@@ -98,10 +101,13 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 		
 		startThreads();
 		
+		LinkedList<Path> images;
+		
 		for(Path archive : foundArchives){
 			unpackArchive(archive, tempFolder);
-			LinkedList<Path> images = findImages(tempFolder);
+			images = findImages(tempFolder);
 			addFilesToQueue(inputQueue, archive, images);
+			deleteFilesInTempDir(tempFolder);
 		}
 	}
 	
@@ -109,7 +115,7 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 		try {
 			unpacker.unpack(archive, tempFolder);
 		} catch (Exception e) {
-			error(e.getMessage());
+			error("Failed to unpack archive: " + e.getMessage());
 		}
 	}
 	
@@ -119,7 +125,7 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 		try {
 			foundfiles = FileWalker.getAllImages(directory);
 		} catch (IOException e) {
-			error(e.getMessage());
+			error("Failed to find images: " + e.getMessage());
 		}
 		
 		return foundfiles;
@@ -148,6 +154,14 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 	private void startThreads() {
 		hasher.start();
 		dbWorker.start();
+	}
+	
+	private void deleteFilesInTempDir(Path path) {
+		try {
+			FileDeleter.deleteAll(path);
+		} catch (IOException e) {
+			error("Failed to clear temp directory: " + e.getMessage());
+		}
 	}
 	
 	@Override
