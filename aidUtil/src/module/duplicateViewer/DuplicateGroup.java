@@ -57,6 +57,10 @@ public class DuplicateGroup {
 		return entries;
 	}
 
+	/**
+	 * No longer needed.
+	 */
+	@Deprecated
 	public Color getColor() {
 		return color;
 	}
@@ -67,6 +71,10 @@ public class DuplicateGroup {
 	
 	public boolean areAllSelected() {
 		boolean allSelected = true;
+		
+		if(isEmpty()) {
+			return false;
+		}
 		
 		for(DuplicateEntry entry : entries){
 			allSelected = allSelected && entry.isSelected();
@@ -82,6 +90,4 @@ public class DuplicateGroup {
 	public boolean isEmpty() {
 		return entries.isEmpty();
 	}
-	
-	
 }

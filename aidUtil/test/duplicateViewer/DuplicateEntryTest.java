@@ -17,15 +17,69 @@
  */
 package duplicateViewer;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import module.duplicateViewer.DuplicateEntry;
+
+import org.junit.Before;
 import org.junit.Test;
 
 public class DuplicateEntryTest {
+	DuplicateEntry dupeEntry;
 
-	@Test
-	public void testIsSelected() {
-		fail("Not yet implemented");
+	@Before
+	public void setUp() throws IOException {
+		createEntryWithValidPath();
+	}
+	
+	private void createEntryWithValidPath() throws IOException {
+		Path vaildPath = createValidFile();
+		createEntry(vaildPath);
 	}
 
+	private void createEntryWithInvalidPath() {
+		Path invalidPath = Paths.get("not-valid");
+		createEntry(invalidPath);
+	}
+
+	private void createEntry(Path filepath) {
+		dupeEntry = new DuplicateEntry("12345", filepath, 0L);
+		dupeEntry.setSelected(false);
+	}
+	
+	private Path createValidFile() throws IOException {
+		Path validFilePath = Files.createTempFile("DuplicateEntryTestFile", "txt");
+		return validFilePath;
+	}
+
+	@Test
+	public void testValidFileNotSelected() {
+		assertThat(dupeEntry.isSelected(), is(false));
+	}
+	
+	@Test
+	public void testValidFileSelected() {
+		dupeEntry.setSelected(true);
+		assertThat(dupeEntry.isSelected(), is(true));
+	}
+
+	@Test
+	public void testInvalidFileNotSelected() {
+		createEntryWithInvalidPath();
+		dupeEntry.setSelected(false);
+		assertThat(dupeEntry.isSelected(), is(false));
+	}
+	
+	@Test
+	public void testInvalidFileSelected() {
+		createEntryWithInvalidPath();
+		dupeEntry.setSelected(true);
+		assertThat(dupeEntry.isSelected(), is(false));
+	}
 }

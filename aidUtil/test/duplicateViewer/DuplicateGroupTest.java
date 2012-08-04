@@ -17,50 +17,113 @@
  */
 package duplicateViewer;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.matchers.JUnitMatchers.hasItem;
+import static org.mockito.Mockito.*;
+import module.duplicateViewer.DuplicateEntry;
+import module.duplicateViewer.DuplicateGroup;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class DuplicateGroupTest {
-
-	@Test
-	public void testAddEntry() {
-		fail("Not yet implemented");
-	}
-
-	@Test
-	public void testRemoveEntry() {
-		fail("Not yet implemented");
+	DuplicateGroup dupeGroup;
+	
+	@Before
+	public void setup() {
+		dupeGroup = new DuplicateGroup();
 	}
 
 	@Test
 	public void testGetSize() {
-		fail("Not yet implemented");
+		for(int i=0; i < 3; i++){
+			dupeGroup.addEntry(mock(DuplicateEntry.class));
+		}
+		
+		assertThat(dupeGroup.getSize(), is(3));
 	}
 
 	@Test
 	public void testGetEntries() {
-		fail("Not yet implemented");
+		DuplicateEntry dupeMock = mock(DuplicateEntry.class);
+		dupeGroup.addEntry(dupeMock);
+		
+		assertThat(dupeGroup.getEntries(), hasItem(dupeMock));
 	}
 
 	@Test
 	public void testGetGroupId() {
-		fail("Not yet implemented");
+		int currentId = dupeGroup.getGroupId();
+		dupeGroup = new DuplicateGroup();
+		
+		assertThat(dupeGroup.getGroupId(), is(currentId+1));
 	}
 
 	@Test
 	public void testAreAllSelected() {
-		fail("Not yet implemented");
+		
+		for(int i=0; i < 3; i++){
+			dupeGroup.addEntry(createMockEntryWithSetSelected(true));
+		}
+		
+		assertThat(dupeGroup.areAllSelected(), is(true));
+	}
+	
+	@Test
+	public void testAreNotAllSelected() {
+		for(int i=0; i < 3; i++){
+			dupeGroup.addEntry(createMockEntryWithSetSelected(true));
+		}
+		dupeGroup.addEntry(createMockEntryWithSetSelected(false));
+		
+		assertThat(dupeGroup.areAllSelected(), is(false));
+	}
+	
+	@Test
+	public void testAreAllSelectedWithNoneSelected() {
+		assertThat(dupeGroup.areAllSelected(), is(false));
+	}
+	
+	private DuplicateEntry createMockEntryWithSetSelected(boolean setSelected) {
+		DuplicateEntry mockEntry = mock(DuplicateEntry.class);
+		when(mockEntry.isSelected()).thenReturn(setSelected);
+		
+		return mockEntry;
 	}
 
 	@Test
 	public void testHasOnlyOneEntry() {
-		fail("Not yet implemented");
+		dupeGroup.addEntry(mock(DuplicateEntry.class));
+		
+		assertThat(dupeGroup.hasOnlyOneEntry(), is(true));
+	}
+	
+	@Test
+	public void testHasMoreThanOneEntry() {
+		dupeGroup.addEntry(mock(DuplicateEntry.class));
+		dupeGroup.addEntry(mock(DuplicateEntry.class));
+		
+		assertThat(dupeGroup.hasOnlyOneEntry(), is(false));
+	}
+	
+	@Test
+	public void testHasOnlyOneEntryWhenEmpty() {
+		assertThat(dupeGroup.hasOnlyOneEntry(), is(false));
 	}
 
 	@Test
 	public void testIsEmpty() {
-		fail("Not yet implemented");
+		assertThat(dupeGroup.isEmpty(), is(true));
+	}
+	
+	@Test
+	public void testIsNotEmpty() {
+		dupeGroup.addEntry(mock(DuplicateEntry.class));
+		
+		assertThat(dupeGroup.isEmpty(), is(false));
 	}
 
 }
