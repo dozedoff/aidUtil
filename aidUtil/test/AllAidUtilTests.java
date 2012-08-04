@@ -1,9 +1,3 @@
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
-
-import archiveIndexer.ArchiveIndexerTestSuit;
-
 /*  Copyright (C) 2012  Nicholas Wright
 	
 	part of 'AidUtil', a collection of maintenance tools for 'Aid'.
@@ -21,6 +15,11 @@ import archiveIndexer.ArchiveIndexerTestSuit;
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
+
+import archiveIndexer.ArchiveIndexerTestSuit;
 
 @RunWith(Suite.class)
 @SuiteClasses({
