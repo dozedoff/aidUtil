@@ -20,7 +20,7 @@ package module.duplicateViewer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-class DuplicateEntry implements Comparable<DuplicateEntry>{
+public class DuplicateEntry implements Comparable<DuplicateEntry>{
 	private boolean selected = false;
 	private DuplicateGroup group;
 	private String hash;

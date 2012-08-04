@@ -20,7 +20,7 @@ package module.duplicateViewer;
 import java.awt.Color;
 import java.util.LinkedList;
 
-class DuplicateGroup {
+public class DuplicateGroup {
 	static int groupRunningNumber = 0;
 	
 	int groupId;

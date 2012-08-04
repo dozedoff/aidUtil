@@ -19,7 +19,7 @@ package module.duplicateViewer;
 
 import javax.swing.DefaultListModel;
 
-class DuplicateListModel extends DefaultListModel<DuplicateEntry>{
+public class DuplicateListModel extends DefaultListModel<DuplicateEntry>{
 	private static final long serialVersionUID = 1L;
 	
 }
