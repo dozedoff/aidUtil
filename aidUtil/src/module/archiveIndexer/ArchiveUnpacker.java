@@ -52,8 +52,8 @@ public class ArchiveUnpacker {
 		
 		watchDog.start();
 
-		StreamGobbler sge = new StreamGobbler(process.getErrorStream(), "ERROR");
-		StreamGobbler sgo = new StreamGobbler(process.getInputStream(), "OUT");
+		StreamGobbler sge = new StreamGobbler(process.getErrorStream());
+		StreamGobbler sgo = new StreamGobbler(process.getInputStream());
 
 		sge.start();
 		sgo.start();
@@ -68,6 +68,10 @@ public class ArchiveUnpacker {
 		watchDog.interrupt();
 		
 		if(process.exitValue() != 0){
+			if(sgo.getBuffer().contains("Can not open encrypted archive")){
+				throw new UnpackException(UnpackException.INVALID_PASSWORD, archive);
+			}
+			
 			throw new UnpackException(process.exitValue(), archive);
 		}
 	}

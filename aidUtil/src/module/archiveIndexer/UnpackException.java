@@ -4,37 +4,67 @@ import java.nio.file.Path;
 
 public class UnpackException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
-	String message;
+	String message, errorMessage = null;
+	public final static int INVALID_PASSWORD = 100;
 
 	public UnpackException(int exitcode, Path file){
-		String tmp = "";
-		switch(exitcode){
+		check7zipExitCode(exitcode);
+		checkCustomExitCode(exitcode);
+		
+		if(errorMessage == null){
+			errorMessage = "Unspecified error";
+		}
+		
+		this.message = errorMessage +" while processing "+ file.toString();
+	}
+	
+	private void check7zipExitCode(int exitCode) {
+		if(errorMessage != null){
+			return;
+		}
+		
+		switch(exitCode){
 
 		case 1: 
-			tmp = "Warning";
+			errorMessage = "Warning";
 			break;
 
 		case 2:
-			tmp = "Fatal error";
+			errorMessage = "Fatal error";
 			break;
 
 		case 7:
-			tmp = "Command line error";
+			errorMessage = "Command line error";
 			break;
 		case 8:
-			tmp = "Not enough memory for operation";
+			errorMessage = "Not enough memory for operation";
 			break;
 
 		case 255:
-			tmp = "User stopped the process";
+			errorMessage = "User stopped the process";
 			break;
 
 		default:
-			tmp = "Unspecified error";
+			errorMessage = null;
 			break;
 		}
-
-		this.message = tmp +" while processing "+ file.toString();
+	}
+	
+	private void checkCustomExitCode(int exitcode) {
+		if(errorMessage != null){
+			return;
+		}
+		
+		switch(exitcode){
+		
+		case 100:
+			errorMessage = "Invalid password";
+			break;
+			
+		default:
+			errorMessage = null;
+			break;
+		}
 	}
 
 	@Override
