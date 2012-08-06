@@ -25,12 +25,24 @@ public class DuplicateGroup {
 	
 	int groupId;
 	Color color;
+	String imageHashValue;
 	
 	LinkedList<DuplicateEntry> entries = new LinkedList<>();
 
+	/**
+	 * Use DuplicateGroup(String) instead.
+	 * Groups need a hash value to correctly add duplicates.
+	 */
+	@Deprecated
 	public DuplicateGroup() {
 		this.groupId = groupRunningNumber++;
+		imageHashValue = null;
 		setColor();
+	}
+	
+	public DuplicateGroup(String imageHashValue){
+		this.groupId = groupRunningNumber++;
+		this.imageHashValue = imageHashValue;
 	}
 	
 	private void setColor() {
@@ -117,5 +129,28 @@ public class DuplicateGroup {
 	
 	public boolean isEmpty() {
 		return entries.isEmpty();
+	}
+	
+	public String getImageHashValue() {
+		return imageHashValue;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if(o == null){
+			return false;
+		}
+		
+		if(! (o instanceof DuplicateGroup)){
+			return false;
+		}
+
+		DuplicateGroup toCompare = (DuplicateGroup) o;
+		
+		if(this.imageHashValue.equalsIgnoreCase(toCompare.getImageHashValue())){
+			return true;
+		}
+		
+		return false;
 	}
 }

@@ -19,10 +19,9 @@ package duplicateViewer;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.junit.matchers.JUnitMatchers.hasItem;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import module.duplicateViewer.DuplicateEntry;
 import module.duplicateViewer.DuplicateGroup;
 
@@ -31,10 +30,11 @@ import org.junit.Test;
 
 public class DuplicateGroupTest {
 	DuplicateGroup dupeGroup;
+	final String TEST_HASH = "12345";
 	
 	@Before
 	public void setup() {
-		dupeGroup = new DuplicateGroup();
+		dupeGroup = new DuplicateGroup(TEST_HASH);
 	}
 
 	@Test
@@ -46,6 +46,7 @@ public class DuplicateGroupTest {
 		assertThat(dupeGroup.getSize(), is(3));
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testGetEntries() {
 		DuplicateEntry dupeMock = mock(DuplicateEntry.class);
@@ -57,7 +58,7 @@ public class DuplicateGroupTest {
 	@Test
 	public void testGetGroupId() {
 		int currentId = dupeGroup.getGroupId();
-		dupeGroup = new DuplicateGroup();
+		dupeGroup = new DuplicateGroup(TEST_HASH);
 		
 		assertThat(dupeGroup.getGroupId(), is(currentId+1));
 	}
@@ -156,5 +157,27 @@ public class DuplicateGroupTest {
 			when(mockEntry.isSelected()).thenReturn(false);
 			dupeGroup.addEntry(mockEntry);
 		}
+	}
+	
+	@Test
+	public void testEqualNull() {
+		assertThat(dupeGroup.equals(null), is(false));
+	}
+	
+	@Test
+	public void tesEqualtWrongClass() {
+		assertThat(dupeGroup.equals(new String()), is(false));
+	}
+	
+	@Test
+	public void testEqualWrongHashValue() {
+		DuplicateGroup nonEqualGroup = new DuplicateGroup("54321");
+		assertThat(dupeGroup.equals(nonEqualGroup), is(false));
+	}
+	
+	@Test
+	public void testEqualSameHashValue() {
+		DuplicateGroup nonEqualGroup = new DuplicateGroup(TEST_HASH);
+		assertThat(dupeGroup.equals(nonEqualGroup), is(true));
 	}
 }
