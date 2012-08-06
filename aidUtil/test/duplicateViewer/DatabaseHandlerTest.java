@@ -19,10 +19,20 @@ package duplicateViewer;
 
 import static org.junit.Assert.*;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+
+import org.dbunit.DatabaseTestCase;
+import org.dbunit.database.DatabaseConnection;
+import org.dbunit.database.IDatabaseConnection;
+import org.dbunit.dataset.IDataSet;
+import org.dbunit.ext.mysql.MySqlDataTypeFactory;
+import org.dbunit.util.fileloader.FlatXmlDataFileLoader;
 import org.junit.Test;
 
-public class DatabaseHandlerTest {
-
+public class DatabaseHandlerTest extends DatabaseTestCase {
+	final String DataBaseHandler_PATH = "/dbData/DatabaseHandlerTestData.xml";
+	
 	@Test
 	public void testDeleteFromIndex() {
 		fail("Not yet implemented");
@@ -31,6 +41,27 @@ public class DatabaseHandlerTest {
 	@Test
 	public void testDeleteFromDuplicates() {
 		fail("Not yet implemented");
+	}
+
+	// Connection related methods
+	
+	@Override
+	protected IDatabaseConnection getConnection() throws Exception {
+		Class.forName("com.mysql.jdbc.Driver"); 
+		
+		Connection jdbcConnection = DriverManager.getConnection( "jdbc:mysql://localhost/test","test", "test"); 
+		DatabaseConnection dbConn = new DatabaseConnection(jdbcConnection);
+		
+		dbConn.getConfig().setProperty("http://www.dbunit.org/properties/datatypeFactory", new MySqlDataTypeFactory());
+		
+		return dbConn;
+	}
+
+	@Override
+	protected IDataSet getDataSet() throws Exception {
+		IDataSet dataSet = new FlatXmlDataFileLoader().load(DataBaseHandler_PATH);
+
+		return dataSet;
 	}
 
 }
