@@ -18,11 +18,11 @@
 package module.duplicateViewer;
 
 public class DatabaseHandler {
-	public void deleteFromIndex(DuplicateEntry entry) {
+	public void deleteFromIndex(Entry entry) {
 		//TODO implement method
 	}
 	
-	public void deleteFromDuplicates(DuplicateEntry entry) {
+	public void deleteFromDuplicates(Entry entry) {
 		//TODO implement method
 	}
 }

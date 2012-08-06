@@ -24,22 +24,22 @@ import java.util.Map;
 
 
 public class GroupListCreator {
-	public static LinkedList<DuplicateGroup> createList(List<DuplicateEntry> entries) {
+	public static LinkedList<DuplicateGroup> createList(List<Entry> entries) {
 		LinkedHashMap<String, DuplicateGroup> groupMap = populateMap(entries);
 		LinkedList<DuplicateGroup> groupList = convertMapToList(groupMap);
 		return groupList;
 	}
 	
-	private static LinkedHashMap<String, DuplicateGroup> populateMap(List<DuplicateEntry> entries) {
+	private static LinkedHashMap<String, DuplicateGroup> populateMap(List<Entry> entries) {
 		LinkedHashMap<String, DuplicateGroup> groupMap = new LinkedHashMap<>();
 
-		for(DuplicateEntry entry : entries) {
+		for(Entry entry : entries) {
 			addEntryToMap(groupMap, entry);
 		}
 		return groupMap;
 	}
 	
-	private static void addEntryToMap(Map<String, DuplicateGroup> groupMap, DuplicateEntry entry) {
+	private static void addEntryToMap(Map<String, DuplicateGroup> groupMap, Entry entry) {
 		String entryHash = entry.getHash();
 		
 		if(groupMap.containsKey(entryHash)){

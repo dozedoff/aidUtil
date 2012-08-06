@@ -20,14 +20,14 @@ package module.duplicateViewer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class DuplicateEntry implements Comparable<DuplicateEntry>{
+public class Entry implements Comparable<Entry>{
 	private boolean selected = false;
 	private DuplicateGroup group;
 	private String hash;
 	private Path path;
 	private long lastModified;
 
-	public DuplicateEntry(String hash, Path path, long lastModified) {
+	public Entry(String hash, Path path, long lastModified) {
 		this.path = path;
 		this.hash = hash;
 		this.lastModified = lastModified;
@@ -70,7 +70,7 @@ public class DuplicateEntry implements Comparable<DuplicateEntry>{
 	}
 
 	@Override
-	public int compareTo(DuplicateEntry o) {
+	public int compareTo(Entry o) {
 		return this.hash.compareTo(o.getHash());
 	}
 	
@@ -81,10 +81,10 @@ public class DuplicateEntry implements Comparable<DuplicateEntry>{
 	
 	@Override
 	public boolean equals(Object obj) {
-		if(obj == null || !(obj instanceof DuplicateEntry)){
+		if(obj == null || !(obj instanceof Entry)){
 			return false;
 		}
 		
-		return ((DuplicateEntry)obj).getHash().equals(getHash());
+		return ((Entry)obj).getHash().equals(getHash());
 	}
 }

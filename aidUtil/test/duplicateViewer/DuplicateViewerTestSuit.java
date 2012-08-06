@@ -24,9 +24,9 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
 	DatabaseHandlerTest.class,
-	DuplicateDeleterTest.class,
-	DuplicateEntryTest.class,
+	DeleterTest.class,
+	EntryTest.class,
 	DuplicateGroupTest.class,
-	DuplicateSelectorTest.class
+	SelectorTest.class
 })
 public class DuplicateViewerTestSuit {}

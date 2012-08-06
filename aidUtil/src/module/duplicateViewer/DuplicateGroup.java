@@ -27,7 +27,7 @@ public class DuplicateGroup {
 	Color color;
 	String imageHashValue;
 	
-	LinkedList<DuplicateEntry> entries = new LinkedList<>();
+	LinkedList<Entry> entries = new LinkedList<>();
 
 	/**
 	 * Use DuplicateGroup(String) instead.
@@ -53,11 +53,11 @@ public class DuplicateGroup {
 		}
 	}
 	
-	public void addEntry(DuplicateEntry de){
+	public void addEntry(Entry de){
 		entries.add(de);
 	}
 	
-	public void removeEntry(DuplicateEntry de){
+	public void removeEntry(Entry de){
 		entries.remove(de);
 	}
 	
@@ -69,14 +69,14 @@ public class DuplicateGroup {
 	 * Exposes structure, not good.
 	 */
 	@Deprecated
-	public LinkedList<DuplicateEntry> getEntries() {
+	public LinkedList<Entry> getEntries() {
 		return entries;
 	}
 	
-	public LinkedList<DuplicateEntry> getSelected() {
-		LinkedList<DuplicateEntry> selected = new LinkedList<>();
+	public LinkedList<Entry> getSelected() {
+		LinkedList<Entry> selected = new LinkedList<>();
 
-		for (DuplicateEntry entry : entries) {
+		for (Entry entry : entries) {
 			if (entry.isSelected()) {
 				selected.add(entry);
 			}
@@ -85,10 +85,10 @@ public class DuplicateGroup {
 		return selected;
 	}
 	
-	public LinkedList<DuplicateEntry> getNotSelected() {
-		LinkedList<DuplicateEntry> selected = new LinkedList<>();
+	public LinkedList<Entry> getNotSelected() {
+		LinkedList<Entry> selected = new LinkedList<>();
 
-		for (DuplicateEntry entry : entries) {
+		for (Entry entry : entries) {
 			if (!entry.isSelected()) {
 				selected.add(entry);
 			}
@@ -116,7 +116,7 @@ public class DuplicateGroup {
 			return false;
 		}
 		
-		for(DuplicateEntry entry : entries){
+		for(Entry entry : entries){
 			allSelected = allSelected && entry.isSelected();
 		}
 		

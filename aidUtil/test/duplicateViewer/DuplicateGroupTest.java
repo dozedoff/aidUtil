@@ -22,7 +22,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.matchers.JUnitMatchers.hasItem;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import module.duplicateViewer.DuplicateEntry;
+import module.duplicateViewer.Entry;
 import module.duplicateViewer.DuplicateGroup;
 
 import org.junit.Before;
@@ -40,7 +40,7 @@ public class DuplicateGroupTest {
 	@Test
 	public void testGetSize() {
 		for(int i=0; i < 3; i++){
-			dupeGroup.addEntry(mock(DuplicateEntry.class));
+			dupeGroup.addEntry(mock(Entry.class));
 		}
 		
 		assertThat(dupeGroup.getSize(), is(3));
@@ -49,7 +49,7 @@ public class DuplicateGroupTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void testGetEntries() {
-		DuplicateEntry dupeMock = mock(DuplicateEntry.class);
+		Entry dupeMock = mock(Entry.class);
 		dupeGroup.addEntry(dupeMock);
 		
 		assertThat(dupeGroup.getEntries(), hasItem(dupeMock));
@@ -88,8 +88,8 @@ public class DuplicateGroupTest {
 		assertThat(dupeGroup.areAllSelected(), is(false));
 	}
 	
-	private DuplicateEntry createMockEntryWithSetSelected(boolean setSelected) {
-		DuplicateEntry mockEntry = mock(DuplicateEntry.class);
+	private Entry createMockEntryWithSetSelected(boolean setSelected) {
+		Entry mockEntry = mock(Entry.class);
 		when(mockEntry.isSelected()).thenReturn(setSelected);
 		
 		return mockEntry;
@@ -97,15 +97,15 @@ public class DuplicateGroupTest {
 
 	@Test
 	public void testHasOnlyOneEntry() {
-		dupeGroup.addEntry(mock(DuplicateEntry.class));
+		dupeGroup.addEntry(mock(Entry.class));
 		
 		assertThat(dupeGroup.hasOnlyOneEntry(), is(true));
 	}
 	
 	@Test
 	public void testHasMoreThanOneEntry() {
-		dupeGroup.addEntry(mock(DuplicateEntry.class));
-		dupeGroup.addEntry(mock(DuplicateEntry.class));
+		dupeGroup.addEntry(mock(Entry.class));
+		dupeGroup.addEntry(mock(Entry.class));
 		
 		assertThat(dupeGroup.hasOnlyOneEntry(), is(false));
 	}
@@ -122,7 +122,7 @@ public class DuplicateGroupTest {
 	
 	@Test
 	public void testIsNotEmpty() {
-		dupeGroup.addEntry(mock(DuplicateEntry.class));
+		dupeGroup.addEntry(mock(Entry.class));
 		
 		assertThat(dupeGroup.isEmpty(), is(false));
 	}
@@ -145,7 +145,7 @@ public class DuplicateGroupTest {
 	
 	private void addSelectedToGroup(int amount) {
 		for (int i = 0; i < amount; i++) {
-			DuplicateEntry mockEntry = mock(DuplicateEntry.class);
+			Entry mockEntry = mock(Entry.class);
 			when(mockEntry.isSelected()).thenReturn(true);
 			dupeGroup.addEntry(mockEntry);
 		}
@@ -153,7 +153,7 @@ public class DuplicateGroupTest {
 
 	private void addNotSelectedToGroup(int amount) {
 		for (int i = 0; i < amount; i++) {
-			DuplicateEntry mockEntry = mock(DuplicateEntry.class);
+			Entry mockEntry = mock(Entry.class);
 			when(mockEntry.isSelected()).thenReturn(false);
 			dupeGroup.addEntry(mockEntry);
 		}

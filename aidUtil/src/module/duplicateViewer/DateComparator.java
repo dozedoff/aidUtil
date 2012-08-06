@@ -19,9 +19,9 @@ package module.duplicateViewer;
 
 import java.util.Comparator;
 
-public class DateComparator implements Comparator<DuplicateEntry>{
+public class DateComparator implements Comparator<Entry>{
 	@Override
-	public int compare(DuplicateEntry entry1, DuplicateEntry entry2) {
+	public int compare(Entry entry1, Entry entry2) {
 		long date1 = entry1.getLastModified();
 		long date2 = entry2.getLastModified();
 		

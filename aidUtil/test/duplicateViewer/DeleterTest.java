@@ -25,14 +25,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedList;
 
-import module.duplicateViewer.DuplicateDeleter;
-import module.duplicateViewer.DuplicateEntry;
+import module.duplicateViewer.Deleter;
+import module.duplicateViewer.Entry;
 import module.duplicateViewer.DuplicateGroup;
 
 import org.junit.Before;
 import org.junit.Test;
 
-public class DuplicateDeleterTest {
+public class DeleterTest {
 	LinkedList<Path> files;
 	static final int GROUP_SIZE = 5;
 	DuplicateGroup duplicateGroup;
@@ -46,7 +46,7 @@ public class DuplicateDeleterTest {
 	@Test
 	public void testDeleteSelectedNoneMarked() throws IOException {
 		sanityCheck();
-		DuplicateDeleter.deleteSelected(duplicateGroup);
+		Deleter.deleteSelected(duplicateGroup);
 		
 		for(Path file : files){
 			assertThat(Files.exists(file), is(true));
@@ -59,7 +59,7 @@ public class DuplicateDeleterTest {
 	public void testDeleteSelectedAllMarked() throws IOException {
 		duplicateGroup = createDuplicateGroup(GROUP_SIZE, true);
 		sanityCheck();
-		DuplicateDeleter.deleteSelected(duplicateGroup);
+		Deleter.deleteSelected(duplicateGroup);
 		
 		for(Path file : files){
 			assertThat(Files.exists(file), is(false));
@@ -72,14 +72,14 @@ public class DuplicateDeleterTest {
 	public void testDeleteSelectedOneIsMarked() throws IOException {
 		sanityCheck();
 		
-		DuplicateEntry entryToDelete = createDuplicateEntry(true);
+		Entry entryToDelete = createDuplicateEntry(true);
 		entryToDelete.setSelected(true);
 		duplicateGroup.addEntry(entryToDelete);
 		files.remove(entryToDelete.getPath());
 		
 		Path fileToDelete = entryToDelete.getPath();
 		
-		DuplicateDeleter.deleteSelected(duplicateGroup);
+		Deleter.deleteSelected(duplicateGroup);
 		
 		for(Path file : files){
 			assertThat(Files.exists(file), is(true));
@@ -98,10 +98,10 @@ public class DuplicateDeleterTest {
 		}
 	}
 	
-	private DuplicateEntry createDuplicateEntry(boolean entryIsSelected) throws IOException {
+	private Entry createDuplicateEntry(boolean entryIsSelected) throws IOException {
 		Path testFile = Files.createTempFile("DuplicateDeleterTest", ".txt");
 		files.add(testFile);
-		DuplicateEntry entry = new DuplicateEntry("12345", testFile, 0);
+		Entry entry = new Entry("12345", testFile, 0);
 		entry.setSelected(entryIsSelected);
 		return entry;
 	}

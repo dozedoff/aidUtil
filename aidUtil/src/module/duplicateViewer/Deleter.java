@@ -17,9 +17,27 @@
  */
 package module.duplicateViewer;
 
-import javax.swing.DefaultListModel;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedList;
 
-public class DuplicateListModel extends DefaultListModel<DuplicateEntry>{
-	private static final long serialVersionUID = 1L;
+public class Deleter {
+	public static void deleteSelected(DuplicateGroup group) throws IOException {
+		LinkedList<Entry> entries = group.getSelected();
+		
+		for(Entry entry : entries){
+			deleteEntryFromDisk(entry);
+			deleteEntryFromGroup(group, entry);
+		}
+	}
 	
+	private static void deleteEntryFromDisk(Entry entry) throws IOException{
+		Path entryPath = entry.getPath();
+		Files.delete(entryPath);
+	}
+	
+	private static void deleteEntryFromGroup(DuplicateGroup group, Entry entry) {
+		group.removeEntry(entry);
+	}
 }

@@ -51,8 +51,8 @@ import util.LocationTag;
 
 public class ModuleDuplicateViewer extends MaintenanceModule{
 	JPanel displayArea = new JPanel();
-	DuplicateListModel dlm = new DuplicateListModel();
-	JList<DuplicateEntry> duplicateList = new JList<>(dlm);
+	EntryListModel dlm = new EntryListModel();
+	JList<Entry> duplicateList = new JList<>(dlm);
 	JScrollPane duplicateScrollPane = new JScrollPane(duplicateList);
 	
 	Container OptionPanel;
@@ -119,7 +119,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		}
 	}
 	
-	private void displayImage(DuplicateEntry dupe){
+	private void displayImage(Entry dupe){
 		
 		try {
 			displayArea.removeAll(); // clear the panel
@@ -164,7 +164,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	}
 	
 	private void deleteMarked(DuplicateGroup group){
-		for(DuplicateEntry de : group.getEntries()){
+		for(Entry de : group.getEntries()){
 			if(de.isSelected()){
 				try {
 					Files.delete(de.getPath());
@@ -179,7 +179,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		
 		// if the group only has one entry left, it is no longer needed
 		if(group.getSize() <= 1){
-			for(DuplicateEntry de : group.getEntries()){
+			for(Entry de : group.getEntries()){
 				// only remove, but do NOT delete
 				sql.deleteDuplicateByPath(de.getPath());
 				sql.deleteIndexByPath(de.getPath());
@@ -193,7 +193,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	private void loadDuplicates(){
 		setStatus("Loading duplicates...");
 		info("Loading duplicates...");
-		ArrayList<DuplicateEntry> dupeList = new ArrayList<>(sql.size(AidTables.Fileduplicate));
+		ArrayList<Entry> dupeList = new ArrayList<>(sql.size(AidTables.Fileduplicate));
 		
 		
 		setStatus("Sorting duplicates...");
@@ -202,7 +202,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		
 		// id, dupeLoc, dupepath, origloc, origpath
 		for(String[] s : sql.getDuplicates()){
-			DuplicateEntry de;
+			Entry de;
 			
 			if(stop){
 				break;
@@ -212,10 +212,10 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 			
 			if(tagMap.get(s[1]) != null){
 				//TODO add file size instead of 0
-				de = new DuplicateEntry(hash, tagMap.get(s[1]).resolve(s[2]), 0); // absolute path (tag found)
+				de = new Entry(hash, tagMap.get(s[1]).resolve(s[2]), 0); // absolute path (tag found)
 			} else {
 				//TODO add file size instead of 0
-				de = new DuplicateEntry(hash, Paths.get(s[2]), 0); // relative path (tag not found)
+				de = new Entry(hash, Paths.get(s[2]), 0); // relative path (tag not found)
 			}
 			
 			dupeList.add(de);
@@ -227,7 +227,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		setStatus("Creating groups...");
 		info("Creating groups...");
 		
-		for(DuplicateEntry de : dupeList){
+		for(Entry de : dupeList){
 			if(! de.getHash().equals(hash)){
 				hash = de.getHash(); // set hash for next group
 				
@@ -249,7 +249,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		int duplicates = 0;
 		
 		for(DuplicateGroup d : groups){
-			for(DuplicateEntry de : d.getEntries()){
+			for(Entry de : d.getEntries()){
 				dlm.addElement(de);
 				duplicates++;
 			}

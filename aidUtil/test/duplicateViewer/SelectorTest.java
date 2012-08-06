@@ -26,14 +26,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedList;
 
-import module.duplicateViewer.DuplicateEntry;
+import module.duplicateViewer.Entry;
 import module.duplicateViewer.DuplicateGroup;
-import module.duplicateViewer.DuplicateSelector;
+import module.duplicateViewer.Selector;
 
 import org.junit.Before;
 import org.junit.Test;
 
-public class DuplicateSelectorTest {
+public class SelectorTest {
 	private DuplicateGroup dupeGroup;
 	
 	private static final int ENTRIES_PER_GROUP = 5;
@@ -48,7 +48,7 @@ public class DuplicateSelectorTest {
 		
 		for(int i=0; i<ENTRIES_PER_GROUP; i++ ){
 			Path entryPath = Files.createTempFile("DuplicateSelectorTest", null);
-			dupeGroup.addEntry(new DuplicateEntry(String.valueOf(i), entryPath, i));
+			dupeGroup.addEntry(new Entry(String.valueOf(i), entryPath, i));
 		}
 	}
 	
@@ -57,14 +57,14 @@ public class DuplicateSelectorTest {
 		
 		for(int i=0; i<numOfSelected; i++ ){
 			Path entryPath = Files.createTempFile("DuplicateSelectorTest", null);
-			DuplicateEntry entry = new DuplicateEntry(String.valueOf(i), entryPath, i);
+			Entry entry = new Entry(String.valueOf(i), entryPath, i);
 			entry.setSelected(true);
 			dupeGroup.addEntry(entry);
 		}
 		
 		for(int i=numOfSelected; i<ENTRIES_PER_GROUP; i++ ){
 			Path entryPath = Files.createTempFile("DuplicateSelectorTest", null);
-			dupeGroup.addEntry(new DuplicateEntry(String.valueOf(i), entryPath, i));
+			dupeGroup.addEntry(new Entry(String.valueOf(i), entryPath, i));
 		}
 	}
 
@@ -73,7 +73,7 @@ public class DuplicateSelectorTest {
 		createGroupWithSelected(2);
 		assertThat(dupeGroup.getSelected().size(), is(2));
 		
-		DuplicateSelector.clearAllSelections(dupeGroup);
+		Selector.clearAllSelections(dupeGroup);
 		
 		assertThat(dupeGroup.getSelected().size(), is(0));
 		assertThat(dupeGroup.getNotSelected().size(), is(ENTRIES_PER_GROUP));
@@ -84,7 +84,7 @@ public class DuplicateSelectorTest {
 		createGroupWithSelected(2);
 		assertThat(dupeGroup.getSelected().size(), is(2));
 		
-		DuplicateSelector.selectAllEntries(dupeGroup);
+		Selector.selectAllEntries(dupeGroup);
 		
 		assertThat(dupeGroup.getSelected().size(), is(ENTRIES_PER_GROUP));
 		assertThat(dupeGroup.getNotSelected().size(), is(0));
@@ -92,7 +92,7 @@ public class DuplicateSelectorTest {
 
 	@Test
 	public void testSelectAllButOldest() {
-		DuplicateSelector.selectAllButOldest(dupeGroup);
+		Selector.selectAllButOldest(dupeGroup);
 
 		assertThat(dupeGroup.getSelected().size(), is(ENTRIES_PER_GROUP-1));
 		assertThat(dupeGroup.getNotSelected().size(), is(1));
@@ -101,7 +101,7 @@ public class DuplicateSelectorTest {
 
 	@Test
 	public void testSelectAllButNewest() {
-		DuplicateSelector.selectAllButNewest(dupeGroup);
+		Selector.selectAllButNewest(dupeGroup);
 		
 		assertThat(dupeGroup.getSelected().size(), is(ENTRIES_PER_GROUP-1));
 		assertThat(dupeGroup.getNotSelected().size(), is(1));
@@ -117,11 +117,11 @@ public class DuplicateSelectorTest {
 		LinkedList<DuplicateGroup> groupList = new LinkedList<>();
 		groupList.add(dupeGroup);
 		
-		DuplicateSelector.selectAllFromPath(groupList, tempDirectory.resolve("dirA/"));
+		Selector.selectAllFromPath(groupList, tempDirectory.resolve("dirA/"));
 		
 		assertThat(dupeGroup.getSelected().size(), is(3));
 		
-		for(DuplicateEntry entry : dupeGroup.getSelected()) {
+		for(Entry entry : dupeGroup.getSelected()) {
 			Path entryPath = entry.getPath();
 			String pathString = entryPath.toString();
 			assertThat(pathString.toLowerCase().contains("dirb"), is(false));
@@ -132,7 +132,7 @@ public class DuplicateSelectorTest {
 		dupeGroup = new DuplicateGroup();
 		
 		for(Path file : files){
-			DuplicateEntry entry = new DuplicateEntry("1", file, 0);
+			Entry entry = new Entry("1", file, 0);
 			dupeGroup.addEntry(entry);
 		}
 		

@@ -25,13 +25,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import module.duplicateViewer.DuplicateEntry;
+import module.duplicateViewer.Entry;
 
 import org.junit.Before;
 import org.junit.Test;
 
-public class DuplicateEntryTest {
-	DuplicateEntry dupeEntry;
+public class EntryTest {
+	Entry dupeEntry;
 
 	@Before
 	public void setUp() throws IOException {
@@ -49,7 +49,7 @@ public class DuplicateEntryTest {
 	}
 
 	private void createEntry(Path filepath) {
-		dupeEntry = new DuplicateEntry("12345", filepath, 0L);
+		dupeEntry = new Entry("12345", filepath, 0L);
 		dupeEntry.setSelected(false);
 	}
 	

@@ -22,19 +22,19 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public class DuplicateSelector {
+public class Selector {
 	public static void clearAllSelections(DuplicateGroup group) {
-		LinkedList<DuplicateEntry> selected = group.getSelected();
+		LinkedList<Entry> selected = group.getSelected();
 		
-		for(DuplicateEntry entry : selected) {
+		for(Entry entry : selected) {
 			entry.setSelected(false);
 		}
 	}
 	
 	public static void selectAllEntries(DuplicateGroup group) {
-		LinkedList<DuplicateEntry> notSelected = group.getNotSelected();
+		LinkedList<Entry> notSelected = group.getNotSelected();
 		
-		for(DuplicateEntry entry : notSelected) {
+		for(Entry entry : notSelected) {
 			entry.setSelected(true);
 		}
 	}
@@ -42,9 +42,9 @@ public class DuplicateSelector {
 	public static void selectAllButOldest(DuplicateGroup group) {
 		selectAllEntries(group);
 		
-		LinkedList<DuplicateEntry> entries = group.getSelected();
+		LinkedList<Entry> entries = group.getSelected();
 		sortByAscendingDate(entries);
-		DuplicateEntry oldest = entries.getFirst();
+		Entry oldest = entries.getFirst();
 		
 		oldest.setSelected(false);
 	}
@@ -52,14 +52,14 @@ public class DuplicateSelector {
 	public static void selectAllButNewest(DuplicateGroup group) {
 		selectAllEntries(group);
 		
-		LinkedList<DuplicateEntry> entries = group.getSelected();
+		LinkedList<Entry> entries = group.getSelected();
 		sortByAscendingDate(entries);
-		DuplicateEntry newest = entries.getLast();
+		Entry newest = entries.getLast();
 		
 		newest.setSelected(false);
 	}
 	
-	private static void sortByAscendingDate(LinkedList<DuplicateEntry> entries) {
+	private static void sortByAscendingDate(LinkedList<Entry> entries) {
 		Collections.sort(entries, new DateComparator());
 	}
 	
@@ -72,14 +72,14 @@ public class DuplicateSelector {
 	private static void markEntriesInPath(DuplicateGroup group, Path path) {
 		clearAllSelections(group);
 		
-		for(DuplicateEntry entry : group.getNotSelected()) {
+		for(Entry entry : group.getNotSelected()) {
 			if(isInPath(entry, path)) {
 				entry.setSelected(true);
 			}
 		}
 	}
 	
-	private static boolean isInPath(DuplicateEntry entry, Path path) {
+	private static boolean isInPath(Entry entry, Path path) {
 		Path entryPath = entry.getPath();
 		return entryPath.startsWith(path);
 	}

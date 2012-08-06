@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.LinkedList;
 
-import module.duplicateViewer.DuplicateEntry;
+import module.duplicateViewer.Entry;
 import module.duplicateViewer.DuplicateGroup;
 import module.duplicateViewer.GroupListCreator;
 
@@ -33,7 +33,7 @@ import org.junit.Test;
 
 public class GroupListCreatorTest {
 	LinkedList<DuplicateGroup> groups;
-	LinkedList<DuplicateEntry> entries;
+	LinkedList<Entry> entries;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -77,8 +77,8 @@ public class GroupListCreatorTest {
 		assertThat(groups.size(), is(4));
 	}
 	
-	private DuplicateEntry createMockEntryWithHash(String hashValue) {
-		DuplicateEntry mockEntry = mock(DuplicateEntry.class);
+	private Entry createMockEntryWithHash(String hashValue) {
+		Entry mockEntry = mock(Entry.class);
 		when(mockEntry.getHash()).thenReturn(hashValue);
 		return mockEntry;
 	}
