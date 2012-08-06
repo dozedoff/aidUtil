@@ -18,22 +18,69 @@
 package module.duplicateViewer;
 
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 public class DuplicateSelector {
-	public void clearAllSelections(DuplicateGroup group) {
-		//TODO implement method
+	public static void clearAllSelections(DuplicateGroup group) {
+		LinkedList<DuplicateEntry> selected = group.getSelected();
+		
+		for(DuplicateEntry entry : selected) {
+			entry.setSelected(false);
+		}
 	}
 	
-	public void selectAllButOldest(DuplicateGroup group) {
-		//TODO implement method
+	public static void selectAllEntries(DuplicateGroup group) {
+		LinkedList<DuplicateEntry> notSelected = group.getNotSelected();
+		
+		for(DuplicateEntry entry : notSelected) {
+			entry.setSelected(true);
+		}
 	}
 	
-	public void selectAllButNewest(DuplicateGroup group) {
-		//TODO implement method
+	public static void selectAllButOldest(DuplicateGroup group) {
+		selectAllEntries(group);
+		
+		LinkedList<DuplicateEntry> entries = group.getSelected();
+		sortByAscendingDate(entries);
+		DuplicateEntry oldest = entries.getFirst();
+		
+		oldest.setSelected(false);
 	}
 	
-	public void selectAllFromPath(List<DuplicateGroup> groupList, Path path) {
-		//TODO implement method
+	public static void selectAllButNewest(DuplicateGroup group) {
+		selectAllEntries(group);
+		
+		LinkedList<DuplicateEntry> entries = group.getSelected();
+		sortByAscendingDate(entries);
+		DuplicateEntry newest = entries.getLast();
+		
+		newest.setSelected(false);
+	}
+	
+	private static void sortByAscendingDate(LinkedList<DuplicateEntry> entries) {
+		Collections.sort(entries, new DateComparator());
+	}
+	
+	public static void selectAllFromPath(List<DuplicateGroup> groupList, Path path) {
+		for(DuplicateGroup group : groupList) {
+			markEntriesInPath(group,path);
+		}
+	}
+	
+	private static void markEntriesInPath(DuplicateGroup group, Path path) {
+		clearAllSelections(group);
+		
+		for(DuplicateEntry entry : group.getNotSelected()) {
+			if(isInPath(entry, path)) {
+				entry.setSelected(true);
+			}
+		}
+	}
+	
+	private static boolean isInPath(DuplicateEntry entry, Path path) {
+		Path entryPath = entry.getPath();
+		return entryPath.startsWith(path);
 	}
 }
