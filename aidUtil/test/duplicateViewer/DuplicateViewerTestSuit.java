@@ -27,6 +27,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	DeleterTest.class,
 	EntryTest.class,
 	DuplicateGroupTest.class,
-	SelectorTest.class
+	SelectorTest.class,
+	GroupListCreatorTest.class
 })
 public class DuplicateViewerTestSuit {}
