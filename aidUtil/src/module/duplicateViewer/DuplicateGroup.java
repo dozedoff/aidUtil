@@ -53,8 +53,36 @@ public class DuplicateGroup {
 		return entries.size();
 	}
 	
+	/**
+	 * Exposes structure, not good.
+	 */
+	@Deprecated
 	public LinkedList<DuplicateEntry> getEntries() {
 		return entries;
+	}
+	
+	public LinkedList<DuplicateEntry> getSelected() {
+		LinkedList<DuplicateEntry> selected = new LinkedList<>();
+
+		for (DuplicateEntry entry : entries) {
+			if (entry.isSelected()) {
+				selected.add(entry);
+			}
+		}
+
+		return selected;
+	}
+	
+	public LinkedList<DuplicateEntry> getNotSelected() {
+		LinkedList<DuplicateEntry> selected = new LinkedList<>();
+
+		for (DuplicateEntry entry : entries) {
+			if (!entry.isSelected()) {
+				selected.add(entry);
+			}
+		}
+
+		return selected;
 	}
 
 	/**

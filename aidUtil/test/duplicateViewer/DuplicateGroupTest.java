@@ -125,5 +125,36 @@ public class DuplicateGroupTest {
 		
 		assertThat(dupeGroup.isEmpty(), is(false));
 	}
+	
+	@Test
+	public void testGetSelected() {
+		addSelectedToGroup(4);
+		addNotSelectedToGroup(5);
+		
+		assertThat(dupeGroup.getSelected().size(), is(4));
+	}
+	
+	@Test
+	public void testGetNotSelected() {
+		addSelectedToGroup(4);
+		addNotSelectedToGroup(5);;
+		
+		assertThat(dupeGroup.getNotSelected().size(), is(5));
+	}
+	
+	private void addSelectedToGroup(int amount) {
+		for (int i = 0; i < amount; i++) {
+			DuplicateEntry mockEntry = mock(DuplicateEntry.class);
+			when(mockEntry.isSelected()).thenReturn(true);
+			dupeGroup.addEntry(mockEntry);
+		}
+	}
 
+	private void addNotSelectedToGroup(int amount) {
+		for (int i = 0; i < amount; i++) {
+			DuplicateEntry mockEntry = mock(DuplicateEntry.class);
+			when(mockEntry.isSelected()).thenReturn(false);
+			dupeGroup.addEntry(mockEntry);
+		}
+	}
 }
