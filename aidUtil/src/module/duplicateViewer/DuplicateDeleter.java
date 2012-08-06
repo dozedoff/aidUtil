@@ -17,18 +17,27 @@
  */
 package module.duplicateViewer;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedList;
 
 public class DuplicateDeleter {
-	public void deleteSelected(DuplicateGroup group) {
-		LinkedList<DuplicateEntry> entries = group.getEntries();
+	public static void deleteSelected(DuplicateGroup group) throws IOException {
+		LinkedList<DuplicateEntry> entries = group.getSelected();
 		
 		for(DuplicateEntry entry : entries){
 			deleteEntryFromDisk(entry);
+			deleteEntryFromGroup(group, entry);
 		}
 	}
 	
-	private void deleteEntryFromDisk(DuplicateEntry entry){
-		//TODO implement method
+	private static void deleteEntryFromDisk(DuplicateEntry entry) throws IOException{
+		Path entryPath = entry.getPath();
+		Files.delete(entryPath);
+	}
+	
+	private static void deleteEntryFromGroup(DuplicateGroup group, DuplicateEntry entry) {
+		group.removeEntry(entry);
 	}
 }
