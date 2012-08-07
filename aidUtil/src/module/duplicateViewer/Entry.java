@@ -84,7 +84,16 @@ public class Entry implements Comparable<Entry>{
 		if(obj == null || !(obj instanceof Entry)){
 			return false;
 		}
+		Entry entry = (Entry)obj;
 		
-		return ((Entry)obj).getHash().equals(getHash());
+		return hashIsEqual(entry) && pathIsEqual(entry);
+	}
+	
+	private boolean hashIsEqual(Entry entry) {
+		return this.getHash().equalsIgnoreCase(entry.getHash());
+	}
+	
+	private boolean pathIsEqual(Entry entry) {
+		return this.getPath().equals(entry.getPath());
 	}
 }
