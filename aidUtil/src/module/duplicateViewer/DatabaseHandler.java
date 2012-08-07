@@ -17,12 +17,63 @@
  */
 package module.duplicateViewer;
 
+import io.AidDAO;
+import io.AidTables;
+import io.ConnectionPool;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+
 public class DatabaseHandler {
-	public void deleteFromIndex(Entry entry) {
-		//TODO implement method
+	private final AidDAO sql;
+	private final HashMap<String, Path> tagMap;
+	
+	public DatabaseHandler(ConnectionPool connPool, HashMap<String, Path> tagMap) {
+		this.sql = new AidDAO(connPool);
+		this.tagMap = tagMap;
+	}
+	
+	public LinkedList<Entry> getDuplicates() {
+		LinkedList<String[]> data = sql.getDuplicates();
+		LinkedList<Entry> duplicates = processDuplicateData(data);
+		return duplicates;
+	}
+	
+	private LinkedList<Entry> processDuplicateData(List<String[]> data){
+		LinkedList<Entry> entries = new LinkedList<>();
+		
+		for(String[] s : data){
+			Entry entry;
+			
+			String hash = s[0];
+			String location = s[1];
+			String relvativeDuplicatePath = s[2];
+			Path entryPath, rootPath;
+			
+			rootPath = getLocationPath(location);
+			
+			if(rootPath != null){
+				entryPath = rootPath.resolve(relvativeDuplicatePath);
+			} else {
+				entryPath = Paths.get(relvativeDuplicatePath);
+			}
+			
+			entry = new Entry(hash, entryPath);
+			entries.add(entry);
+		}
+		
+		return entries;
+	}
+	
+	private Path getLocationPath(String location) {
+		return tagMap.get(location);
 	}
 	
 	public void deleteFromDuplicates(Entry entry) {
-		//TODO implement method
+		String hash = entry.getHash();
+		sql.delete(AidTables.Fileduplicate, hash);
 	}
 }
