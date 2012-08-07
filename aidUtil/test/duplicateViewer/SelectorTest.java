@@ -24,6 +24,9 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.FileTime;
 import java.util.LinkedList;
 
 import module.duplicateViewer.Entry;
@@ -44,27 +47,34 @@ public class SelectorTest {
 	}
 	
 	private void createGroup() throws IOException {
-		dupeGroup = new DuplicateGroup();
+		dupeGroup = new DuplicateGroup("1");
 		
 		for(int i=0; i<ENTRIES_PER_GROUP; i++ ){
-			Path entryPath = Files.createTempFile("DuplicateSelectorTest", null);
-			dupeGroup.addEntry(new Entry(String.valueOf(i), entryPath, i));
+			Path entryPath = createFileWithModifiedTimestamp(i);
+			dupeGroup.addEntry(new Entry(String.valueOf(i), entryPath));
 		}
+	}
+
+	private Path createFileWithModifiedTimestamp(int i) throws IOException {
+		Path entryPath = Files.createTempFile("DuplicateSelectorTest", null);
+		FileTime time = FileTime.fromMillis(i);
+		Files.setLastModifiedTime(entryPath, time);
+		return entryPath;
 	}
 	
 	private void createGroupWithSelected(int numOfSelected) throws IOException {
-		dupeGroup = new DuplicateGroup();
+		dupeGroup = new DuplicateGroup("1");
 		
 		for(int i=0; i<numOfSelected; i++ ){
-			Path entryPath = Files.createTempFile("DuplicateSelectorTest", null);
-			Entry entry = new Entry(String.valueOf(i), entryPath, i);
+			Path entryPath = createFileWithModifiedTimestamp(i);
+			Entry entry = new Entry(String.valueOf(i), entryPath);
 			entry.setSelected(true);
 			dupeGroup.addEntry(entry);
 		}
 		
 		for(int i=numOfSelected; i<ENTRIES_PER_GROUP; i++ ){
-			Path entryPath = Files.createTempFile("DuplicateSelectorTest", null);
-			dupeGroup.addEntry(new Entry(String.valueOf(i), entryPath, i));
+			Path entryPath = createFileWithModifiedTimestamp(i);
+			dupeGroup.addEntry(new Entry(String.valueOf(i), entryPath));
 		}
 	}
 
@@ -129,7 +139,7 @@ public class SelectorTest {
 	}
 	
 	private void createGroupFromFiles(LinkedList<Path> files) throws IOException {
-		dupeGroup = new DuplicateGroup();
+		dupeGroup = new DuplicateGroup("1");
 		
 		for(Path file : files){
 			Entry entry = new Entry("1", file, 0);
