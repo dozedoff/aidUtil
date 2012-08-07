@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
 
 import module.duplicateViewer.Entry;
 
@@ -49,12 +50,14 @@ public class EntryTest {
 	}
 
 	private void createEntry(Path filepath) {
-		dupeEntry = new Entry("12345", filepath, 0L);
+		dupeEntry = new Entry("12345", filepath);
 		dupeEntry.setSelected(false);
 	}
 	
 	private Path createValidFile() throws IOException {
 		Path validFilePath = Files.createTempFile("DuplicateEntryTestFile", "txt");
+		FileTime fileTime = FileTime.fromMillis(100);
+		Files.setLastModifiedTime(validFilePath, fileTime);
 		return validFilePath;
 	}
 
@@ -81,5 +84,16 @@ public class EntryTest {
 		createEntryWithInvalidPath();
 		dupeEntry.setSelected(true);
 		assertThat(dupeEntry.isSelected(), is(false));
+	}
+	
+	@Test
+	public void testInvalidFileTimestamp() {
+		createEntryWithInvalidPath();
+		assertThat(dupeEntry.getLastModified(), is(-1L));
+	}
+	
+	@Test
+	public void testValidFileTimestamp() {
+		assertThat(dupeEntry.getLastModified(), is(100L));
 	}
 }

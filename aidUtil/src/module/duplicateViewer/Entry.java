@@ -17,8 +17,10 @@
  */
 package module.duplicateViewer;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 
 public class Entry implements Comparable<Entry>{
 	private boolean selected = false;
@@ -27,10 +29,16 @@ public class Entry implements Comparable<Entry>{
 	private Path path;
 	private long lastModified;
 
+	@Deprecated
 	public Entry(String hash, Path path, long lastModified) {
 		this.path = path;
 		this.hash = hash;
 		this.lastModified = lastModified;
+	}
+	
+	public Entry(String hash, Path path) {
+		this.path = path;
+		this.hash = hash;
 	}
 
 	public Path getPath() {
@@ -62,7 +70,15 @@ public class Entry implements Comparable<Entry>{
 	}
 	
 	public long getLastModified() {
-		return lastModified;
+		if(sourceExists()){
+			try {
+				FileTime fileTime = Files.getLastModifiedTime(path);
+				long lastModTime = fileTime.toMillis();
+				return lastModTime;
+			} catch (IOException e) {}
+		}
+		
+		return -1;
 	}
 
 	private boolean sourceExists() {
