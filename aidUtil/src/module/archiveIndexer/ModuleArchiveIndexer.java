@@ -114,7 +114,7 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 			deleteFilesInTempDir(tempFolder);
 		}
 		
-		info("Finished indexing, " + foundArchives.size() + "archives processed");
+		info("Finished indexing, " + foundArchives.size() + " archives processed");
 	}
 	
 	private void unpackArchive(Path archive, Path tempFolder) {
