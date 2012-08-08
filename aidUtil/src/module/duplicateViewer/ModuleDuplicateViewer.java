@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -41,8 +42,8 @@ import util.LocationTag;
 
 public class ModuleDuplicateViewer extends MaintenanceModule{
 	JPanel displayArea = new JPanel();
-	EntryListModel elm = new EntryListModel();
-	GroupListModel glm = new GroupListModel();
+	DefaultListModel<Entry> elm = new DefaultListModel<>();
+	DefaultListModel<DuplicateGroup> glm = new DefaultListModel<>();
 	
 	JList<DuplicateGroup> groupList = new JList<>(glm);
 	JList<Entry> entryList = new JList<>(elm);
