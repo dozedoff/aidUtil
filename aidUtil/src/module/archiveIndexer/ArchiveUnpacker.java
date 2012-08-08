@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package module;
+package module.archiveIndexer;
 
 import io.StreamGobbler;
 
@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
 
 import thread.ProcessWatchDog;
 public class ArchiveUnpacker {
@@ -67,6 +68,10 @@ public class ArchiveUnpacker {
 		watchDog.interrupt();
 		
 		if(process.exitValue() != 0){
+			if(sgo.getBuffer().contains("Can not open encrypted archive")){
+				throw new UnpackException(UnpackException.INVALID_PASSWORD, archive);
+			}
+			
 			throw new UnpackException(process.exitValue(), archive);
 		}
 	}

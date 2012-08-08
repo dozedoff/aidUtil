@@ -30,7 +30,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import module.DatabaseHandler;
+import module.archiveIndexer.DatabaseHandler;
 
 import org.dbunit.Assertion;
 import org.dbunit.DBTestCase;

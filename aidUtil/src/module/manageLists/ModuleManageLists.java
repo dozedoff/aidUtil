@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package module;
+package module.manageLists;
 
 import file.BinaryFileReader;
 import hash.HashMaker;
@@ -34,6 +34,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import javax.swing.ButtonGroup;
 import javax.swing.JRadioButton;
 
+import module.MaintenanceModule;
 import time.StopWatch;
 
 public class ModuleManageLists extends MaintenanceModule {

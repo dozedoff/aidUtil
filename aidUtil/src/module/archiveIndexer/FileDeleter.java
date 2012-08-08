@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package module;
+package module.archiveIndexer;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.logging.Logger;
 
 public class FileDeleter {
 	public static void deleteAll(Path directory) throws IOException{
@@ -31,6 +32,7 @@ public class FileDeleter {
 }
 
 class DeleteVisitor extends SimpleFileVisitor<Path> {
+	private static final Logger logger = Logger.getLogger(DeleteVisitor.class.getName());
 	Path startingDirectory;
 
 	public DeleteVisitor(Path startingDirectory) {
@@ -39,7 +41,7 @@ class DeleteVisitor extends SimpleFileVisitor<Path> {
 
 	@Override
 	public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-		Files.deleteIfExists(file);
+		delete(file);
 		return FileVisitResult.CONTINUE;
 	}
 	
@@ -48,8 +50,16 @@ class DeleteVisitor extends SimpleFileVisitor<Path> {
 		if(dir.equals(startingDirectory)){
 			return FileVisitResult.CONTINUE;
 		}
-
-		Files.deleteIfExists(dir);
+		
+		delete(dir);
 		return FileVisitResult.CONTINUE;
+	}
+	
+	private void delete(Path path) {
+		try {
+			Files.deleteIfExists(path);
+		} catch (IOException e) {
+			logger.warning("Unable to delete file or directory " + e.getMessage());
+		}
 	}
 }

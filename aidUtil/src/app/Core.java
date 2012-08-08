@@ -18,11 +18,15 @@
 package app;
 
 import file.FileUtil;
+import file.FileWalker;
 import gui.AidUtil;
 import io.BoneConnectionPool;
 import io.ConnectionPool;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -52,33 +56,43 @@ public class Core {
 			e.printStackTrace();
 		}
 		
-		aidUtil = new AidUtil(this, loadModules(), connPool);
+		try {
+			aidUtil = new AidUtil(this, loadModules(), connPool);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		aidUtil.setVisible(true);
 	}
 	
 	/**
 	 * This method creates an instance of all maintenance modules in the bin/module directory
 	 * @return a list of instances of all maintenance modules
+	 * @throws IOException 
 	 */
-	public List<MaintenanceModule> loadModules(){
-		String relativePath = "bin"+File.separator+"module"; // path to the bin/module directory
-		File moduleDir = new File(FileUtil.WorkingDir(),relativePath);
-		String [] files = moduleDir.list();	// get list of files in the directory
+	public List<MaintenanceModule> loadModules() throws IOException{
+		String relativePath = "bin";
+		Path moduleDir = Paths.get(FileUtil.WorkingDir().toString(),relativePath);
+		LinkedList<Path> moduleFiles = FileWalker.walkFileTreeWithFilter(moduleDir, new ModuleFilter());
 		
 		LinkedList<MaintenanceModule> modules = new LinkedList<>();
 
-		for(String s : files){
-			// filter out files that are not maintenance modules
-			if(s.startsWith("Module") && s.endsWith(".class") && !s.equals(ModuleFactory.class.getSimpleName()+".class") && !s.contains("$")){
+		for(Path file : moduleFiles){
 				try {
-					s = "module."+s; // otherwise there will be ClassNotFound error
-					modules.add(ModuleFactory.createModule(s.replace(".class", ""))); // create instance of the module
+					String qualifiedName = createQualifiedName(moduleDir, file);
+					modules.add(ModuleFactory.createInstance(qualifiedName));
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			}
 		}
 		return modules;
+	}
+	
+	private String createQualifiedName(Path basePath, Path filepath) {
+		Path relativePath = basePath.relativize(filepath);
+		String qualifiedName = relativePath.toString();
+		qualifiedName = qualifiedName.replace("\\", ".");
+		qualifiedName = qualifiedName.replace(".class", "");
+		return qualifiedName;
 	}
 }

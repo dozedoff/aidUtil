@@ -29,8 +29,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Properties;
 
-import module.ArchiveUnpacker;
-import module.UnpackException;
+import module.archiveIndexer.ArchiveUnpacker;
+import module.archiveIndexer.UnpackException;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -42,7 +42,7 @@ import app.Core;
 
 public class ArchiveUnpackerTest {
 	Path tempFolder;
-	static Path testArchive, invalidArchive;
+	static Path testArchive, invalidArchive, encryptedArchive;
 	final String[] expectedFilenames = {"foo.txt", "bar.jpg", "foobar.doc"};
 	ArchiveUnpacker archiveUnpacker;
 	static Properties settings = new Properties();
@@ -54,6 +54,7 @@ public class ArchiveUnpackerTest {
 	public static void SetUpClass() throws Exception {
 		testArchive = Paths.get(ArchiveUnpackerTest.class.getResource("test.7z").toURI());
 		invalidArchive = Paths.get(ArchiveUnpackerTest.class.getResource("invalid.rar").toURI());
+		encryptedArchive = Paths.get(ArchiveUnpackerTest.class.getResource("encrypted.7z").toURI());
 		settings.load(Core.class.getResourceAsStream("aidUtil.properties"));
 	}
 	
@@ -100,5 +101,13 @@ public class ArchiveUnpackerTest {
 		exception.expect(IOException.class);
 		
 		new ArchiveUnpacker(Paths.get("\\foobar\\")).unpack(testArchive, tempFolder);
+	}
+	
+	@Test
+	public void testInvalidPassword() throws UnpackException, IOException{
+		exception.expect(UnpackException.class);
+		exception.expectMessage("Invalid password");
+		
+		archiveUnpacker.unpack(encryptedArchive, tempFolder);
 	}
 }

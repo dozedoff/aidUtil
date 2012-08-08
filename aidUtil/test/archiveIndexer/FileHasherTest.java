@@ -24,8 +24,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import module.ArchiveFile;
-import module.FileHasher;
+import module.archiveIndexer.ArchiveFile;
+import module.archiveIndexer.FileHasher;
 
 import org.junit.After;
 import org.junit.Before;

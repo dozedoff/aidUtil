@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package module;
+package module.manageFiles;
 
 import hash.HashMaker;
 import io.AidDAO;
@@ -45,6 +45,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 
+import module.MaintenanceModule;
 import time.StopWatch;
 import file.BinaryFileReader;
 import file.FileUtil;

@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package module;
+package module.archiveIndexer;
 
 import java.awt.Container;
 import java.io.IOException;
@@ -31,10 +31,9 @@ import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
+import module.MaintenanceModule;
+import module.archiveIndexer.DatabaseWorker.OperationMode;
 import app.Core;
-
-import module.DatabaseWorker.OperationMode;
-
 import file.FileInfo;
 import file.FileWalker;
 
@@ -115,7 +114,7 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 			deleteFilesInTempDir(tempFolder);
 		}
 		
-		info("Finished indexing, " + foundArchives.size() + "archives processed");
+		info("Finished indexing, " + foundArchives.size() + " archives processed");
 	}
 	
 	private void unpackArchive(Path archive, Path tempFolder) {
