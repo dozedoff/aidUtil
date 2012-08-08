@@ -18,6 +18,9 @@
 package module.duplicateViewer;
 
 import java.awt.Color;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 
 public class DuplicateGroup {
@@ -26,6 +29,7 @@ public class DuplicateGroup {
 	int groupId;
 	Color color;
 	String imageHashValue;
+	Path imagePath = null;
 	
 	LinkedList<Entry> entries = new LinkedList<>();
 
@@ -134,6 +138,32 @@ public class DuplicateGroup {
 	public String getImageHashValue() {
 		return imageHashValue;
 	}
+	
+	public Path getImagepath() {
+		if((imagePath == null) || (! Files.exists(imagePath))) {
+			imagePath = searchForImagePath();
+		}
+		
+		return imagePath;
+	}
+
+	private Path searchForImagePath() {
+		Path imgPath = Paths.get("empty");
+		
+		if(! entries.isEmpty()) {
+			imgPath = entries.getFirst().getPath();
+			
+			for(Entry entry : entries) {
+				Path path = entry.getPath();
+				if(Files.exists(path)) {
+					imgPath = path;
+					break;
+				}
+			}
+		}
+		
+		return imgPath;
+	}
 
 	@Override
 	public boolean equals(Object o) {
@@ -152,5 +182,10 @@ public class DuplicateGroup {
 		}
 		
 		return false;
+	}
+	
+	@Override
+	public String toString() {
+		return String.valueOf(groupId);
 	}
 }

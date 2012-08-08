@@ -19,11 +19,18 @@ package duplicateViewer;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.matchers.JUnitMatchers.hasItem;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import module.duplicateViewer.Entry;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import module.duplicateViewer.DuplicateGroup;
+import module.duplicateViewer.Entry;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -179,5 +186,52 @@ public class DuplicateGroupTest {
 	public void testEqualSameHashValue() {
 		DuplicateGroup nonEqualGroup = new DuplicateGroup(TEST_HASH);
 		assertThat(dupeGroup.equals(nonEqualGroup), is(true));
+	}
+	
+	@Test
+	public void testNoValidImagePath() throws IOException {
+		Path file1 = Paths.get("foobar/");
+		Path file2 = Paths.get("foo/");;
+		
+		dupeGroup = new DuplicateGroup("1");
+		dupeGroup.addEntry(new Entry("1", file1));
+		dupeGroup.addEntry(new Entry("1", file2));
+		
+		assertThat(dupeGroup.getImagepath(), is(file1));
+	}
+	
+	@Test
+	public void testValidImagePath() throws IOException {
+		Path file1 = Paths.get("foobar/");
+		Path file2 = Files.createTempFile("DuplicatGroupTestFile2", null);
+		
+		dupeGroup = new DuplicateGroup("1");
+		dupeGroup.addEntry(new Entry("1", file1));
+		dupeGroup.addEntry(new Entry("1", file2));
+		
+		assertThat(dupeGroup.getImagepath(), is(file2));
+	}
+	
+	@Test
+	public void testInvalidatedImagePath() throws IOException {
+		Path file1 = Files.createTempFile("DuplicatGroupTestFile1", null);
+		Path file2 = Files.createTempFile("DuplicatGroupTestFile2", null);
+		
+		dupeGroup = new DuplicateGroup("1");
+		dupeGroup.addEntry(new Entry("1", file1));
+		dupeGroup.addEntry(new Entry("1", file2));
+		
+		assertThat(dupeGroup.getImagepath(), is(file1));
+		
+		assertTrue(Files.deleteIfExists(file1));
+		
+		assertThat(dupeGroup.getImagepath(), is(file2));
+	}
+	
+	@Test
+	public void testEmptyGroupImagePath() throws IOException {
+		dupeGroup = new DuplicateGroup("1");
+		
+		assertThat(dupeGroup.getImagepath(), is(Paths.get("empty")));
 	}
 }
