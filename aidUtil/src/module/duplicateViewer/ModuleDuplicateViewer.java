@@ -17,32 +17,22 @@
  */
 package module.duplicateViewer;
 
-import io.AidDAO;
-import io.AidTables;
+import image.SubsamplingImageLoader;
 
 import java.awt.Container;
 import java.awt.GridLayout;
-import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReadParam;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -51,51 +41,75 @@ import util.LocationTag;
 
 public class ModuleDuplicateViewer extends MaintenanceModule{
 	JPanel displayArea = new JPanel();
-	EntryListModel dlm = new EntryListModel();
-	JList<Entry> duplicateList = new JList<>(dlm);
-	JScrollPane duplicateScrollPane = new JScrollPane(duplicateList);
+	EntryListModel elm = new EntryListModel();
+	GroupListModel glm = new GroupListModel();
+	
+	JList<DuplicateGroup> groupList = new JList<>(glm);
+	JList<Entry> entryList = new JList<>(elm);
+	JScrollPane entryScrollPane = new JScrollPane(entryList);
+	JScrollPane groupScrollPane = new JScrollPane(groupList);
 	
 	Container OptionPanel;
 	HashMap<String, Path> tagMap = new HashMap<>();
 	LinkedList<DuplicateGroup> groups = new LinkedList<>();
 	boolean stop = false;
 	
-	AidDAO sql;
+	DatabaseHandler dbHandler;
 	
-	ListSelectionListener selectionListener = new ListSelectionListener() {
+	ListSelectionListener groupSelectionListener = new ListSelectionListener() {
 		
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
-			int index = duplicateList.getSelectedIndex();
-			if(index >= 0 && index <= dlm.getSize()-1 ){
-				displayImage(dlm.get(index));
+			int index = groupList.getSelectedIndex();
+			if(isValidRange(index)){
+				DuplicateGroup group = glm.get(index);
+				populateEntryList(group);
+				
+				Path imagepath = group.getImagepath();
+				displayImage(imagepath);
 			}
+		}
+		
+		private boolean isValidRange(int index) {
+			return (index >= 0 && index <= glm.getSize()-1 );
 		}
 	};
 	
+	private void populateEntryList(DuplicateGroup group) {
+		elm.removeAllElements();
+		
+		LinkedList<Entry> allEntries = new LinkedList<>();
+		allEntries.addAll(group.getSelected());
+		allEntries.addAll(group.getNotSelected());
+		
+		for(Entry entry : allEntries) {
+			elm.addElement(entry);
+		}
+	}
+	
+	public ModuleDuplicateViewer() {
+		groupList.addListSelectionListener(groupSelectionListener);
+	}
+	
 	@Override
 	public void optionPanel(Container container) {
-		container.setLayout(new GridLayout(-1,2));
-		container.add(duplicateScrollPane);
+		container.setLayout(new GridLayout(-1,3));
+		container.add(groupScrollPane);
+		container.add(entryScrollPane);
 		container.add(displayArea);
 		displayArea.setLayout(new GridLayout(0,1));
 		
 		this.OptionPanel = container;
-		
 	}
 
 	@Override
 	public void start() {
 		stop = false;
-		duplicateList.removeAll();
-		
-		sql = new AidDAO(getConnectionPool());
-		duplicateList.removeListSelectionListener(selectionListener);
+		entryList.removeAll();
 		
 		discoverTags();
-		
+		dbHandler = new DatabaseHandler(getConnectionPool(), tagMap);
 		loadDuplicates();
-		
 		setStatus("Ready");
 	}
 
@@ -110,8 +124,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		for(File f : roots){
 			LinkedList<String> tags = LocationTag.findTags(f.toPath());
 			
-			// only one tag in list is a valid state
-			if(tags.size() != 1){
+			if(! isValidTagList(tags)){
 				continue;
 			}
 			
@@ -119,143 +132,69 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		}
 	}
 	
-	private void displayImage(Entry dupe){
+	private boolean isValidTagList(List<String> tags) {
+		int size = tags.size();
+		if(size == 1) {
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	private void displayImage(Path imagepath){
 		
 		try {
-			displayArea.removeAll(); // clear the panel
-			
-			// Create an image input stream on the image
-		    ImageInputStream iis = ImageIO.createImageInputStream(Files.newInputStream(dupe.getPath()));
-
-		    // Find all image readers that recognize the image format
-		    Iterator iter = ImageIO.getImageReaders(iis);
-		    if (!iter.hasNext()) {
-		    	displayArea.add(new JLabel("Unable to display image"));
-		        return;
-		    }
-
-		    // Use the first reader
-		    ImageReader reader = (ImageReader)iter.next();
-
-		    ImageReadParam params = reader.getDefaultReadParam();
-		    reader.setInput(iis, true, true);
-		    
-		    int xSampleRate =  (int)Math.ceil((double) reader.getHeight(0) / (double)displayArea.getHeight());
-		    int ySampleRate = (int)Math.ceil((double) reader.getWidth(0) / (double)displayArea.getWidth());
-
-		    int sampleRate = Math.max(xSampleRate, ySampleRate);
-		    
-		    if(sampleRate < 1){
-		    	sampleRate = 1;
-		    }
-		    
-		    params.setSourceSubsampling(sampleRate, sampleRate, 0, 0);
-		    
-			Image img = reader.read(0, params);
-			
-			displayArea.add(new JLabel(new ImageIcon(img),JLabel.CENTER));
-			
+			displayArea.removeAll();
+			JLabel imageLabel = SubsamplingImageLoader.loadImage(imagepath, displayArea.getSize());
+			displayArea.add(imageLabel);
 		} catch (IOException e) {
-			displayArea.add(new JLabel("Failed to read image"));
+			unableToDisplayImage("Error accessing image");
+		} catch (Exception ex) {
+			unableToDisplayImage(ex.getMessage());
 		}
 		
 		displayArea.revalidate();
 		displayArea.repaint();
 	}
-	
-	private void deleteMarked(DuplicateGroup group){
-		for(Entry de : group.getEntries()){
-			if(de.isSelected()){
-				try {
-					Files.delete(de.getPath());
-					sql.deleteDuplicateByPath(de.getPath());
-					sql.deleteIndexByPath(de.getPath());
-					group.removeEntry(de);
-				} catch (IOException e) {
-					error("Failed to delete " + de.getPath().toString());
-				}
-			}
-		}
-		
-		// if the group only has one entry left, it is no longer needed
-		if(group.getSize() <= 1){
-			for(Entry de : group.getEntries()){
-				// only remove, but do NOT delete
-				sql.deleteDuplicateByPath(de.getPath());
-				sql.deleteIndexByPath(de.getPath());
-				group.removeEntry(de);
-			}
-			
-			groups.remove(this);
-		}
+
+	private void unableToDisplayImage(String message) {
+		displayArea.add(new JLabel(message));
 	}
-	
+
 	private void loadDuplicates(){
 		setStatus("Loading duplicates...");
 		info("Loading duplicates...");
-		ArrayList<Entry> dupeList = new ArrayList<>(sql.size(AidTables.Fileduplicate));
 		
-		
-		setStatus("Sorting duplicates...");
-		info("Sorting duplicates...");
-		Collections.sort(dupeList);
-		
-		// id, dupeLoc, dupepath, origloc, origpath
-		for(String[] s : sql.getDuplicates()){
-			Entry de;
-			
-			if(stop){
-				break;
-			}
-			
-			String hash = s[0];
-			
-			if(tagMap.get(s[1]) != null){
-				//TODO add file size instead of 0
-				de = new Entry(hash, tagMap.get(s[1]).resolve(s[2]), 0); // absolute path (tag found)
-			} else {
-				//TODO add file size instead of 0
-				de = new Entry(hash, Paths.get(s[2]), 0); // relative path (tag not found)
-			}
-			
-			dupeList.add(de);
-		}
-		
-		DuplicateGroup dg = new DuplicateGroup();
-		String hash = "";
+		LinkedList<Entry> entries = dbHandler.getDuplicates();
 		
 		setStatus("Creating groups...");
 		info("Creating groups...");
 		
-		for(Entry de : dupeList){
-			if(! de.getHash().equals(hash)){
-				hash = de.getHash(); // set hash for next group
-				
-				// only add groups with more than one entry
-				if(! (dg.getSize() <= 1)){
-					groups.add(dg);
-				}
-				
-				dg = new DuplicateGroup();
-			}
-			
-			de.setGroup(dg);
-			dg.addEntry(de);
+		LinkedList<DuplicateGroup> groups = GroupListCreator.createList(entries);
+		
+		setStatus("Adding groups to GUI...");
+		info("Adding groups to GUI...");
+		
+		SwingUtilities.invokeLater(new GroupListPopulator(groups));
+		
+		int duplicateNum = entries.size();
+		int groupNum = groups.size();
+		
+		info(duplicateNum + " duplicates in " + groupNum + " groups.");
+	}
+	
+	class GroupListPopulator implements Runnable {
+		List<DuplicateGroup> groups;
+		
+		public GroupListPopulator(List<DuplicateGroup> groups) {
+			this.groups = groups;
 		}
-		
-		setStatus("Adding duplicates to GUI...");
-		info("Adding duplicates to GUI...");
-		
-		int duplicates = 0;
-		
-		for(DuplicateGroup d : groups){
-			for(Entry de : d.getEntries()){
-				dlm.addElement(de);
-				duplicates++;
+
+		@Override
+		public void run() {
+			for (DuplicateGroup group : groups) {
+				glm.addElement(group);
 			}
 		}
-		
-		info(duplicates + " duplicates in " + groups.size() + " groups.");
-		duplicateList.addListSelectionListener(selectionListener);
 	}
 }
