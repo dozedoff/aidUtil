@@ -22,8 +22,14 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ ArchiveFinderTest.class, ArchiveUnpackerTest.class,
-		DatabaseHandlerTest.class, FileDeleterTest.class, FileHasherTest.class })
+@SuiteClasses({
+	ArchiveFinderTest.class,
+	ArchiveUnpackerTest.class,
+	DatabaseHandlerTest.class, 
+	FileDeleterTest.class, 
+	FileHasherTest.class,
+	PathRewriterTest.class
+})
 public class ArchiveIndexerTestSuit {
 
 }

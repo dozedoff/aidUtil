@@ -147,10 +147,6 @@ public class DatabaseHandlerTest extends DatabaseTestCase{
 		return expectedDataSet;
 	}
 	
-	private IDataSet getDatabaseDataSet() throws SQLException, Exception{
-		return getConnection().createDataSet();
-	}
-	
 	private ITable getCompositeFileTable(String tableName, String... fileName) throws MalformedURLException, DataSetException{
 		ITable compositeTable = null;
 		
@@ -164,20 +160,5 @@ public class DatabaseHandlerTest extends DatabaseTestCase{
 			compositeTable = new CompositeTable(compositeTable, table);
 		}
 		return compositeTable;
-	}
-	
-	private IDataSet getCompositeFileDataset(String... fileName) throws DataSetException{
-		IDataSet compositeDataSet = null;
-		
-		for(String file : fileName){
-			if(compositeDataSet == null){
-				compositeDataSet = getFileDataSet(file);
-				continue;
-			}
-			
-			IDataSet dataSet = getFileDataSet(file);
-			compositeDataSet = new CompositeDataSet(compositeDataSet, dataSet);
-		}
-		return compositeDataSet;
 	}
 }
