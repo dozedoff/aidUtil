@@ -51,8 +51,8 @@ public class ArchiveUnpacker {
 		
 		watchDog.start();
 
-		StreamGobbler sge = new StreamGobbler(process.getErrorStream(), "ERROR");
-		StreamGobbler sgo = new StreamGobbler(process.getInputStream(), "OUT");
+		StreamGobbler sge = new StreamGobbler(process.getErrorStream());
+		StreamGobbler sgo = new StreamGobbler(process.getInputStream());
 
 		sge.start();
 		sgo.start();
