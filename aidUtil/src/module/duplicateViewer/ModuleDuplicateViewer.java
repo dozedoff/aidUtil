@@ -101,14 +101,14 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		
 		groupList.addListSelectionListener(groupSelectionListener);
 		
-		duplicateViewOptions.setLayout(new MigLayout("", "[132.00][][grow]", "[grow]"));
+		duplicateViewOptions.setLayout(new MigLayout("", "[70.00][200.00][grow]", "[grow]"));
 		displayArea.setLayout(new MigLayout("fill"));
 
-		duplicateViewOptions.add(groupScrollPane, "growy");
-		duplicateViewOptions.add(entryScrollPane, "growy");
+		duplicateViewOptions.add(groupScrollPane, "grow");
+		duplicateViewOptions.add(entryScrollPane, "grow");
 		duplicateViewOptions.add(displayArea, "grow");
 		
-		container.add(duplicateViewOptions, "grow");
+		container.add(duplicateViewOptions, "grow, push");
 	}
 
 	@Override
