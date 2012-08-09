@@ -20,7 +20,6 @@ package module.duplicateViewer;
 import image.SubsamplingImageLoader;
 
 import java.awt.Container;
-import java.awt.GridLayout;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -38,19 +37,18 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import module.MaintenanceModule;
+import net.miginfocom.swing.MigLayout;
 import util.LocationTag;
 
 public class ModuleDuplicateViewer extends MaintenanceModule{
-	JPanel displayArea = new JPanel();
+	JPanel displayArea, duplicateViewOptions;
 	DefaultListModel<Entry> elm = new DefaultListModel<>();
 	DefaultListModel<DuplicateGroup> glm = new DefaultListModel<>();
 	
-	JList<DuplicateGroup> groupList = new JList<>(glm);
-	JList<Entry> entryList = new JList<>(elm);
-	JScrollPane entryScrollPane = new JScrollPane(entryList);
-	JScrollPane groupScrollPane = new JScrollPane(groupList);
+	JList<DuplicateGroup> groupList;
+	JList<Entry> entryList;
+	JScrollPane entryScrollPane, groupScrollPane;
 	
-	Container OptionPanel;
 	HashMap<String, Path> tagMap = new HashMap<>();
 	LinkedList<DuplicateGroup> groups = new LinkedList<>();
 	boolean stop = false;
@@ -88,25 +86,36 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		}
 	}
 	
-	public ModuleDuplicateViewer() {
-		groupList.addListSelectionListener(groupSelectionListener);
-	}
-	
+	/**
+	 * @wbp.parser.entryPoint
+	 */
 	@Override
 	public void optionPanel(Container container) {
-		container.setLayout(new GridLayout(-1,3));
-		container.add(groupScrollPane);
-		container.add(entryScrollPane);
-		container.add(displayArea);
-		displayArea.setLayout(new GridLayout(0,1));
+		duplicateViewOptions = new JPanel();
+		displayArea = new JPanel();
 		
-		this.OptionPanel = container;
+		groupList = new JList<>(glm);
+		entryList = new JList<>(elm);
+		entryScrollPane = new JScrollPane(entryList);
+		groupScrollPane = new JScrollPane(groupList);
+		
+		groupList.addListSelectionListener(groupSelectionListener);
+		
+		duplicateViewOptions.setLayout(new MigLayout("", "[132.00][][grow]", "[grow]"));
+		displayArea.setLayout(new MigLayout("fill"));
+
+		duplicateViewOptions.add(groupScrollPane, "growy");
+		duplicateViewOptions.add(entryScrollPane, "growy");
+		duplicateViewOptions.add(displayArea, "grow");
+		
+		container.add(duplicateViewOptions, "grow");
 	}
 
 	@Override
 	public void start() {
 		stop = false;
-		entryList.removeAll();
+		glm.removeAllElements();
+		elm.removeAllElements();
 		
 		discoverTags();
 		dbHandler = new DatabaseHandler(getConnectionPool(), tagMap);
