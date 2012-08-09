@@ -60,7 +60,6 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 	@Override
 	public void optionPanel(Container container) {
 		JPanel archiveIndexerOptions = new JPanel();
-		container.setLayout(new MigLayout());
 		container.add(archiveIndexerOptions, "cell 0 0,alignx left,aligny top");
 		
 		archiveIndexerOptions.setLayout(new MigLayout("aligny top", "[][263.00]", "[][]"));

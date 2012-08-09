@@ -19,7 +19,6 @@ package gui;
 
 import io.ConnectionPool;
 
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
@@ -65,7 +64,7 @@ public class AidUtil extends JFrame implements ActionListener{
 		// set up JFrame
 		setSize(820, 530);
 		setTitle("AidUtil");
-		MigLayout migLayout = new MigLayout("debug");
+		MigLayout migLayout = new MigLayout("debug", "[408.00][252.00][][][]", "[][][]");
 		getContentPane().setLayout(migLayout);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
@@ -82,35 +81,37 @@ public class AidUtil extends JFrame implements ActionListener{
 			guiModelMap.put(jmi, mm);
 		}
 		
-		targetPath = new JTextField(30);
-		status = new JTextField(20);
-		status.setEditable(false);
+		targetPath = new JTextField();
 		targetPath.setToolTipText("Folder to process");
-		
-		getContentPane().add(targetPath, "growx");
-		getContentPane().add(status, "span 2");
 		
 		start = new JButton("Start");
 		cancel = new JButton("Cancel");
 		clear = new JButton("Clear");
 
-		getContentPane().add(start);
-		getContentPane().add(cancel);
-		getContentPane().add(clear, "wrap");
-
-
 		optionPanel = new JPanel();
-		getContentPane().add(optionPanel, "spanx ,push ,growx,aligny top,wrap");
+		optionPanel.setLayout(new MigLayout());
+
+		// set clear tooltip
+		clear.setToolTipText("Clear the log area");
 		logArea = new JTextArea(10,70);
 		JScrollPane logScroll = new JScrollPane(logArea);
-		getContentPane().add(logScroll, "dock south");
+		
+		getContentPane().add(targetPath, "cell 0 0,growx");
+		status = new JTextField();
+		status.setEditable(false);
+		getContentPane().add(status, "cell 1 0,growx");
+		getContentPane().add(start, "cell 2 0");
+		getContentPane().add(cancel, "cell 3 0");
+		getContentPane().add(clear, "cell 4 0");
+		getContentPane().add(optionPanel, "cell 0 1 5 1,push ,grow");
+		getContentPane().add(logScroll, "cell 0 2 5 1,growx");
+		
+		
+		
 		
 		// enable auto-scroll for the TextArea
 		DefaultCaret caret = (DefaultCaret)logArea.getCaret();
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-
-		// set clear tooltip
-		clear.setToolTipText("Clear the log area");
 		
 		// set action listener for cancel (done here as the action listener will not change)
 		clear.addActionListener(new ActionListener() {
@@ -123,8 +124,8 @@ public class AidUtil extends JFrame implements ActionListener{
 	}
 	
 	private void setActiveModule(final MaintenanceModule module){
-		optionPanel.removeAll(); // clear the option panel
-		optionPanel.setLayout(new FlowLayout()); // reset layout to default
+		optionPanel.removeAll();
+		optionPanel.setLayout(new MigLayout());
 		
 		module.setConnectionPool(connPool);
 		

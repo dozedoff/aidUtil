@@ -107,7 +107,6 @@ public class ModuleManageFiles extends MaintenanceModule {
 	 */
 	@Override
 	public void optionPanel(Container container) {
-		container.setLayout(new MigLayout());
 		JPanel manageFilesOptions = new JPanel();
 		manageFilesOptions.setLayout(new MigLayout("", "[367px][65px]", "[56px][56px][62px]"));
 		panelBlacklist.setLayout(new MigLayout("", "[123px][137px]", "[23px]"));

@@ -63,8 +63,6 @@ public class ModuleManageLists extends MaintenanceModule {
 	 */
 	@Override
 	public void optionPanel(Container container) {
-		container.setLayout(new MigLayout());
-		
 		JPanel manageListOptions = new JPanel();
 		manageListOptions.setLayout(new MigLayout("", "[49px,grow][63px][67px][79px]", "[23px][grow]"));
 		optionGroup = new ButtonGroup();
