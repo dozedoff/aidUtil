@@ -15,5 +15,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/DbUnit"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/jsoup"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/ORMlite"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/migLayout"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

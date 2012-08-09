@@ -19,9 +19,7 @@ package gui;
 
 import io.ConnectionPool;
 
-import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.Menu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
@@ -39,7 +37,7 @@ import javax.swing.JTextField;
 import javax.swing.text.DefaultCaret;
 
 import module.MaintenanceModule;
-
+import net.miginfocom.swing.MigLayout;
 import app.Core;
 
 public class AidUtil extends JFrame implements ActionListener{
@@ -50,7 +48,7 @@ public class AidUtil extends JFrame implements ActionListener{
 	
 	JTextField targetPath, status;
 	JTextArea logArea;
-	JPanel optionPanel, controlPanel;
+	JPanel optionPanel;
 	JButton start, cancel, clear;
 	JMenuBar mBar;
 	JMenu moduleMenu;
@@ -65,9 +63,10 @@ public class AidUtil extends JFrame implements ActionListener{
 	
 	private void init(List<MaintenanceModule> modules){
 		// set up JFrame
-		setSize(800, 500);
+		setSize(820, 530);
 		setTitle("AidUtil");
-		setLayout(new BorderLayout());
+		MigLayout migLayout = new MigLayout("debug");
+		getContentPane().setLayout(migLayout);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		// add menubar
@@ -83,28 +82,33 @@ public class AidUtil extends JFrame implements ActionListener{
 			guiModelMap.put(jmi, mm);
 		}
 		
-		// create JPanel for contorls
-		controlPanel = new JPanel();
-		controlPanel.add(targetPath = new JTextField(30));
-		controlPanel.add(status = new JTextField(20));
+		targetPath = new JTextField(30);
+		status = new JTextField(20);
 		status.setEditable(false);
 		targetPath.setToolTipText("Folder to process");
 		
-		// add components to main window
-		add(controlPanel, BorderLayout.NORTH);
-		add(optionPanel = new JPanel(), BorderLayout.CENTER);
-		add(new JScrollPane( logArea = new JTextArea(10,30) ),BorderLayout.SOUTH);
+		getContentPane().add(targetPath, "growx");
+		getContentPane().add(status, "span 2");
+		
+		start = new JButton("Start");
+		cancel = new JButton("Cancel");
+		clear = new JButton("Clear");
+
+		getContentPane().add(start);
+		getContentPane().add(cancel);
+		getContentPane().add(clear, "wrap");
+
+
+		optionPanel = new JPanel();
+		getContentPane().add(optionPanel, "spanx ,push ,growx,aligny top,wrap");
+		logArea = new JTextArea(10,70);
+		JScrollPane logScroll = new JScrollPane(logArea);
+		getContentPane().add(logScroll, "dock south");
 		
 		// enable auto-scroll for the TextArea
 		DefaultCaret caret = (DefaultCaret)logArea.getCaret();
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-		
-		// create command buttons
-		start = new JButton("Start");
-		cancel = new JButton("Cancel");
-		clear = new JButton("Clear");
-		
-		
+
 		// set clear tooltip
 		clear.setToolTipText("Clear the log area");
 		
@@ -116,12 +120,6 @@ public class AidUtil extends JFrame implements ActionListener{
 				logArea.setText("");
 			}
 		});
-		
-		// add control buttons  
-		controlPanel.add(start);
-		controlPanel.add(cancel);
-		controlPanel.add(clear);
-
 	}
 	
 	private void setActiveModule(final MaintenanceModule module){
