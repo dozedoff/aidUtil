@@ -45,6 +45,8 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 
+import net.miginfocom.swing.MigLayout;
+
 import module.MaintenanceModule;
 import time.StopWatch;
 import file.BinaryFileReader;
@@ -100,14 +102,23 @@ public class ModuleManageFiles extends MaintenanceModule {
 		setModuleName("Manage files");
 	}
 	
+	/**
+	 * @wbp.parser.entryPoint
+	 */
 	@Override
 	public void optionPanel(Container container) {
-		panelBlacklist.add(blCheck);
-		panelBlacklist.add(blMoveTagged);
-		panelBlacklist.setBorder(BorderFactory.createTitledBorder("Blacklist"));
-		container.add(panelBlacklist);
+		container.setLayout(new MigLayout());
+		JPanel manageFilesOptions = new JPanel();
+		manageFilesOptions.setLayout(new MigLayout("", "[367px][65px]", "[56px][56px][62px]"));
+		panelBlacklist.setLayout(new MigLayout("", "[123px][137px]", "[23px]"));
 		
-		panelDnw.add(dnwCheck);
+		panelBlacklist.add(blCheck, "cell 0 0,alignx left,aligny top");
+		panelBlacklist.add(blMoveTagged, "cell 1 0,alignx left,aligny top");
+		panelBlacklist.setBorder(BorderFactory.createTitledBorder("Blacklist"));
+		manageFilesOptions.add(panelBlacklist, "cell 0 0,growx,aligny center");
+		panelDnw.setLayout(new MigLayout("", "[99px][79px][83px][69px]", "[23px]"));
+		
+		panelDnw.add(dnwCheck, "cell 0 0,alignx left,aligny top");
 		
 		// disable buttons when not in use
 		dnwCheck.addActionListener(new ActionListener() {
@@ -128,26 +139,27 @@ public class ModuleManageFiles extends MaintenanceModule {
 		
 		setDnwRadioEnable(false);
 		
-		panelDnw.add(dnwMove);
-		panelDnw.add(dnwDelete);
-		panelDnw.add(dnwLog);
+		panelDnw.add(dnwMove, "cell 1 0,alignx left,aligny top");
+		panelDnw.add(dnwDelete, "cell 2 0,alignx left,aligny top");
+		panelDnw.add(dnwLog, "cell 3 0,alignx left,aligny top");
 		panelDnw.setBorder(BorderFactory.createTitledBorder("DNW"));
-		container.add(panelDnw);
+		manageFilesOptions.add(panelDnw, "cell 0 1,alignx left,aligny center");
+		panelIndex.setLayout(new MigLayout("", "[75px][95px][83px]", "[23px]"));
 		
-		panelIndex.add(indexCheck);
-		panelIndex.add(indexSkip);
-		panelIndex.add(indexPrune);
+		panelIndex.add(indexCheck, "cell 0 0,alignx left,aligny top");
+		panelIndex.add(indexSkip, "cell 1 0,alignx left,aligny top");
+		panelIndex.add(indexPrune, "cell 2 0,alignx left,aligny top");
 		
 		indexSkip.setToolTipText("If the filepath is found, the file will not be hashed");
 		indexPrune.setToolTipText("Delete index entries with invalid paths");
 		panelIndex.setBorder(BorderFactory.createTitledBorder("Index"));
-		container.add(panelIndex);
+		manageFilesOptions.add(panelIndex, "cell 0 2,growx,aligny center");
 		
 		progressBar.setPreferredSize(new Dimension(200, 30));
 		progressBar.setStringPainted(true);
-		container.add(progressBar);
+		manageFilesOptions.add(progressBar, "cell 0 3,growx,aligny center");
 		
-		container.repaint();
+		container.add(manageFilesOptions, "cell 0 0,alignx left,aligny top");
 	}
 	
 	private void setDnwRadioEnable(boolean enable){
