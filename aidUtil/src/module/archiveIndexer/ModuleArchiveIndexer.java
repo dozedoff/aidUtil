@@ -28,8 +28,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+
+import net.miginfocom.swing.MigLayout;
 
 import module.MaintenanceModule;
 import module.archiveIndexer.DatabaseWorker.OperationMode;
@@ -51,27 +54,37 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 	
 	LinkedList<Path> foundArchives;
 
+	/**
+	 * @wbp.parser.entryPoint
+	 */
 	@Override
 	public void optionPanel(Container container) {
+		JPanel archiveIndexerOptions = new JPanel();
+		container.add(archiveIndexerOptions);
+		
+		archiveIndexerOptions.setLayout(new MigLayout("aligny top", "[][263.00]", "[][]"));
 		setModuleName("Archive indexer");
-		container.add(new JLabel("Temp folder"));
 		
 		tempPathField = new JTextField(20);
 		tempPathField.setToolTipText("Folder to use for unpacking archives");
-		container.add(tempPathField);
-		
+
 		indexMode = new JRadioButton("Index");
 		indexMode.setToolTipText("Add files to the file index");
-		container.add(indexMode);
+		
 		dnwMode = new JRadioButton("DNW");
 		dnwMode.setToolTipText("Add files to the DNW list");
-		container.add(dnwMode);
 		
 		modeGroup = new ButtonGroup();
 		modeGroup.add(indexMode);
 		modeGroup.add(dnwMode);
 		
 		indexMode.setSelected(true);
+		
+		archiveIndexerOptions.add(new JLabel("Temp folder"),"cell 0 0,aligny top");
+		archiveIndexerOptions.add(tempPathField, "cell 1 0,growx");
+		archiveIndexerOptions.add(new JLabel("Mode"), "cell 0 1");
+		archiveIndexerOptions.add(indexMode, "cell 1 1");
+		archiveIndexerOptions.add(dnwMode, "cell 1 1");
 	}
 
 	@Override
