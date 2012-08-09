@@ -131,6 +131,8 @@ public class AidUtil extends JFrame implements ActionListener{
 		
 		// add module specific options
 		module.optionPanel(optionPanel);
+		optionPanel.revalidate();
+		optionPanel.repaint();
 		module.setLog(logArea);
 		
 		// set TextFields
