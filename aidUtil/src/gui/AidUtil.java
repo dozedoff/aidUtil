@@ -64,7 +64,7 @@ public class AidUtil extends JFrame implements ActionListener{
 		// set up JFrame
 		setSize(820, 530);
 		setTitle("AidUtil");
-		MigLayout migLayout = new MigLayout("[408.00][252.00][][][]", "[][][]");
+		MigLayout migLayout = new MigLayout("", "[408.00][252.00][][][]", "[][][]");
 		getContentPane().setLayout(migLayout);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
