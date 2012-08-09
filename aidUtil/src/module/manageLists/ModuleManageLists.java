@@ -31,10 +31,13 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
 import module.MaintenanceModule;
+import net.miginfocom.swing.MigLayout;
 import time.StopWatch;
 
 public class ModuleManageLists extends MaintenanceModule {
@@ -48,22 +51,39 @@ public class ModuleManageLists extends MaintenanceModule {
 	JRadioButton listDnw = new JRadioButton("DNW"), listBlacklist = new JRadioButton("Blacklist"),
 				listUnDnw = new JRadioButton("Un-DNW"), listUnBlacklist = new JRadioButton("Un-Blacklist");
 	JRadioButton[] rbs = {listDnw, listBlacklist, listUnDnw, listUnBlacklist};
+	private final JPanel mode = new JPanel();
 	
 	public ModuleManageLists(){
 		super();
 		setModuleName("Manage lists");
 	}
 	
+	/**
+	 * @wbp.parser.entryPoint
+	 */
 	@Override
 	public void optionPanel(Container container) {
+		container.setLayout(new MigLayout());
+		
+		JPanel manageListOptions = new JPanel();
+		manageListOptions.setLayout(new MigLayout("", "[49px,grow][63px][67px][79px]", "[23px][grow]"));
 		optionGroup = new ButtonGroup();
 		
 		for(JRadioButton rb : rbs){
 			optionGroup.add(rb);
-			container.add(rb);
 		}
 		
-		container.repaint();
+		mode.setBorder(BorderFactory.createTitledBorder("Mode"));
+		
+		mode.setLayout(new MigLayout("", "[][][][]", "[]"));
+		mode.add(listDnw, "cell 0 0");
+		mode.add(listBlacklist, "cell 1 0");
+		mode.add(listUnDnw, "cell 2 0");
+		mode.add(listUnBlacklist, "cell 3 0");
+		listDnw.setSelected(true);
+		
+		manageListOptions.add(mode, "cell 0 0 4 1,grow");
+		container.add(manageListOptions, "cell 0 0,alignx left,aligny top");
 	}
 
 	@Override
