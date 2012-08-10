@@ -39,6 +39,9 @@ import javax.swing.event.ListSelectionListener;
 import module.MaintenanceModule;
 import net.miginfocom.swing.MigLayout;
 import util.LocationTag;
+import javax.swing.JRadioButton;
+import javax.swing.JButton;
+import javax.swing.ButtonGroup;
 
 public class ModuleDuplicateViewer extends MaintenanceModule{
 	JPanel displayArea, duplicateViewOptions;
@@ -74,6 +77,12 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		}
 	};
 	
+	private JRadioButton groupFilterVisible;
+	private JRadioButton groupFilterValid;
+	private JButton entrySelect;
+	private JRadioButton groupFilterAll;
+	private JLabel lblGroupFilter;
+	private final ButtonGroup filterGroup = new ButtonGroup();
 	private void populateEntryList(DuplicateGroup group) {
 		elm.removeAllElements();
 		
@@ -101,14 +110,33 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		
 		groupList.addListSelectionListener(groupSelectionListener);
 		
-		duplicateViewOptions.setLayout(new MigLayout("", "[70.00][200.00][grow]", "[grow]"));
+		duplicateViewOptions.setLayout(new MigLayout("", "[70.00][200.00][grow]", "[grow][]"));
 		displayArea.setLayout(new MigLayout("fill"));
 
-		duplicateViewOptions.add(groupScrollPane, "grow");
-		duplicateViewOptions.add(entryScrollPane, "grow");
-		duplicateViewOptions.add(displayArea, "grow");
+		duplicateViewOptions.add(groupScrollPane, "cell 0 0,grow");
+		duplicateViewOptions.add(entryScrollPane, "cell 1 0,grow");
+		duplicateViewOptions.add(displayArea, "cell 2 0,grow");
 		
 		container.add(duplicateViewOptions, "grow, push");
+		
+		entrySelect = new JButton("Select");
+		duplicateViewOptions.add(entrySelect, "cell 0 1,growx");
+		
+		lblGroupFilter = new JLabel("Group filter:");
+		duplicateViewOptions.add(lblGroupFilter, "flowx,cell 1 1");
+		
+		groupFilterAll = new JRadioButton("All");
+		groupFilterAll.setSelected(true);
+		filterGroup.add(groupFilterAll);
+		duplicateViewOptions.add(groupFilterAll, "cell 1 1");
+		
+		groupFilterVisible = new JRadioButton("Visible");
+		filterGroup.add(groupFilterVisible);
+		duplicateViewOptions.add(groupFilterVisible, "cell 1 1");
+		
+		groupFilterValid = new JRadioButton("Valid");
+		filterGroup.add(groupFilterValid);
+		duplicateViewOptions.add(groupFilterValid, "cell 1 1");
 	}
 
 	@Override
