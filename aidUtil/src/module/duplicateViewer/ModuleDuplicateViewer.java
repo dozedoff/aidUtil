@@ -94,6 +94,18 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		}
 	};
 	
+	Action toggleGroupAction = new AbstractAction() {
+		private static final long serialVersionUID = 1L;
+		{
+			putValue(Action.NAME, "Toggle group");
+		}
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			toggleGroup();
+			entryList.repaint();
+		}
+	};
+	
 	private JRadioButton groupFilterVisible;
 	private JRadioButton groupFilterValid;
 	private JButton entrySelect;
@@ -101,7 +113,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	private JLabel lblGroupFilter;
 	private final ButtonGroup filterGroup = new ButtonGroup();
 	private JButton btnDelete;
-	private JButton btnSelectAll;
+	private JButton btnToggleGroup;
 	
 	private boolean isValidIndex(int index) {
 		return (index >= 0);
@@ -149,17 +161,10 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		
 		container.add(duplicateViewOptions, "grow, push");
 		
-		btnSelectAll = new JButton("Select All");
-		btnSelectAll.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				toggleGroup();
-				entryList.repaint();
-			}
-		});
+		btnToggleGroup = new JButton();
+		btnToggleGroup.setAction(toggleGroupAction);
 		
-		duplicateViewOptions.add(btnSelectAll, "cell 0 1");
+		duplicateViewOptions.add(btnToggleGroup, "cell 0 1");
 		
 		lblGroupFilter = new JLabel("Group filter:");
 		duplicateViewOptions.add(lblGroupFilter, "flowx,cell 1 1");
@@ -197,20 +202,8 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	}
 
 	private void bindHotKeys() {
-		Action selectAllAct = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				toggleGroup();
-				entryList.repaint();
-			}
-		};
-		
-		selectAllAct.putValue("name", "Select All");
-		
 		groupList.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('a'), "selectAll");
-		groupList.getActionMap().put("selectAll", selectAllAct);
+		groupList.getActionMap().put("selectAll", toggleGroupAction);
 	}
 	
 	private void addListeners() {
