@@ -29,11 +29,18 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -41,9 +48,6 @@ import javax.swing.event.ListSelectionListener;
 import module.MaintenanceModule;
 import net.miginfocom.swing.MigLayout;
 import util.LocationTag;
-import javax.swing.JRadioButton;
-import javax.swing.JButton;
-import javax.swing.ButtonGroup;
 
 public class ModuleDuplicateViewer extends MaintenanceModule{
 	JPanel displayArea, duplicateViewOptions;
@@ -136,9 +140,6 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		entryScrollPane = new JScrollPane(entryList);
 		groupScrollPane = new JScrollPane(groupList);
 		
-
-		
-		
 		duplicateViewOptions.setLayout(new MigLayout("", "[70.00][200.00][grow]", "[grow][]"));
 		displayArea.setLayout(new MigLayout("fill"));
 
@@ -150,11 +151,14 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		
 		btnSelectAll = new JButton("Select All");
 		btnSelectAll.addActionListener(new ActionListener() {
+			
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				toggleGroup();
 				entryList.repaint();
 			}
 		});
+		
 		duplicateViewOptions.add(btnSelectAll, "cell 0 1");
 		
 		lblGroupFilter = new JLabel("Group filter:");
@@ -187,8 +191,26 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		entrySelect = new JButton("Select");
 		duplicateViewOptions.add(entrySelect, "flowx,cell 2 1,alignx left");
 		duplicateViewOptions.add(btnDelete, "cell 2 1");
-		
+
+		bindHotKeys();
 		addListeners();
+	}
+
+	private void bindHotKeys() {
+		Action selectAllAct = new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				toggleGroup();
+				entryList.repaint();
+			}
+		};
+		
+		selectAllAct.putValue("name", "Select All");
+		
+		groupList.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('a'), "selectAll");
+		groupList.getActionMap().put("selectAll", selectAllAct);
 	}
 	
 	private void addListeners() {
