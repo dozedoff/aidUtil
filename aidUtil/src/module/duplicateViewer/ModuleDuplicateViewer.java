@@ -55,7 +55,6 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	JScrollPane entryScrollPane, groupScrollPane;
 	
 	HashMap<String, Path> tagMap = new HashMap<>();
-	LinkedList<DuplicateGroup> groups = new LinkedList<>();
 	boolean stop = false;
 	
 	DatabaseHandler dbHandler;
@@ -237,25 +236,39 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	}
 
 	private void loadDuplicates(){
-		setStatus("Loading duplicates...");
-		info("Loading duplicates...");
-		
+		addToStatusAndLog("Loading duplicates...");		
 		LinkedList<Entry> entries = dbHandler.getDuplicates();
 		
-		setStatus("Creating groups...");
-		info("Creating groups...");
-		
+		addToStatusAndLog("Creating groups...");
 		LinkedList<DuplicateGroup> groups = GroupListCreator.createList(entries);
 		
-		setStatus("Adding groups to GUI...");
-		info("Adding groups to GUI...");
+		filterGroups(groups);
 		
+		addToStatusAndLog("Adding groups to GUI...");
 		SwingUtilities.invokeLater(new GroupListPopulator(groups));
 		
 		int duplicateNum = entries.size();
 		int groupNum = groups.size();
 		
 		info(duplicateNum + " duplicates in " + groupNum + " groups.");
+	}
+	
+	private void addToStatusAndLog(String message){
+		setStatus(message);
+		info(message);	
+	}
+	
+	private void filterGroups(List<DuplicateGroup> groups) {
+		final String FILTER_MSG = "Filtering groups...";
+		if(groupFilterAll.isSelected()){
+			return;
+		}else if(groupFilterValid.isSelected()){
+			addToStatusAndLog(FILTER_MSG);
+			GroupFilter.onlyFullyValidGroups(groups);
+		}else if(groupFilterVisible.isSelected()){
+			addToStatusAndLog(FILTER_MSG);
+			GroupFilter.onlyVisibleTagGroups(groups);
+		}
 	}
 	
 	class GroupListPopulator implements Runnable {
