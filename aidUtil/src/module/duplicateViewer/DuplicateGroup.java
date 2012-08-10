@@ -69,10 +69,6 @@ public class DuplicateGroup {
 		return entries.size();
 	}
 	
-	/**
-	 * Exposes structure, not good.
-	 */
-	@Deprecated
 	public LinkedList<Entry> getEntries() {
 		return entries;
 	}
@@ -145,6 +141,44 @@ public class DuplicateGroup {
 		}
 		
 		return imagePath;
+	}
+	
+	public boolean allEntriesAbsolute() {
+		if(isEmpty()){
+			return false;
+		}
+		
+		boolean allAbsolute = true;
+		
+		for(Entry entry : entries) {
+			if(! allAbsolute){
+				break;
+			}
+			
+			Path entryPath = entry.getPath();
+			allAbsolute = allAbsolute && entryPath.isAbsolute();
+		}
+		
+		return allAbsolute;
+	}
+	
+	public boolean allEntriesExist() {
+		if(isEmpty()) {
+			return false;
+		}
+		
+		boolean allExist = true;
+		
+		for(Entry entry : entries) {
+			if(! allExist) {
+				break;
+			}
+			
+			Path entryPath = entry.getPath();
+			allExist = allExist && Files.exists(entryPath);
+		}
+		
+		return allExist;
 	}
 
 	private Path searchForImagePath() {

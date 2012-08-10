@@ -18,6 +18,7 @@
 package duplicateViewer;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.matchers.JUnitMatchers.hasItem;
@@ -33,11 +34,21 @@ import module.duplicateViewer.DuplicateGroup;
 import module.duplicateViewer.Entry;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+
+import archiveIndexer.ArchiveUnpackerTest;
 
 public class DuplicateGroupTest {
 	DuplicateGroup dupeGroup;
 	final String TEST_HASH = "12345";
+	static Path validFilePath;
+	
+	@BeforeClass
+	public static void beforeClassSetup() throws Exception {
+		validFilePath = Paths.get(ArchiveUnpackerTest.class.getResource("test.7z").toURI());
+	}
+	
 	
 	@Before
 	public void setup() {
@@ -233,5 +244,52 @@ public class DuplicateGroupTest {
 		dupeGroup = new DuplicateGroup("1");
 		
 		assertThat(dupeGroup.getImagepath(), is(Paths.get("empty")));
+	}
+	
+	@Test
+	public void testAllEntriesAbsoluteEmptyGroup() {
+		assertFalse(dupeGroup.allEntriesAbsolute());
+	}
+	
+	@Test
+	public void testAllEntriesAbsolute() {
+		createAndAddMock(Paths.get("C:\\test\\foobar.txt"));
+		assertTrue(dupeGroup.allEntriesAbsolute());
+	}
+	
+	@Test
+	public void testNotAllEntriesAbsolute() {
+		createAndAddMock(Paths.get("C:\\test\\foobar.txt"));
+		assertTrue(dupeGroup.allEntriesAbsolute()); //Sanity check
+		
+		createAndAddMock((Paths.get("test\\foobar.txt")));
+		assertFalse(dupeGroup.allEntriesAbsolute());
+	}
+	
+	@Test
+	public void testAllEntriesExistWhenEmpty() {
+		assertFalse(dupeGroup.allEntriesExist());
+	}
+	
+	@Test
+	public void testAllEntriesExist() {
+		createAndAddMock(validFilePath);
+		assertTrue(dupeGroup.allEntriesExist());
+	}
+	
+	@Test
+	public void testNotAllEntriesExist() {
+		createAndAddMock(validFilePath);
+		assertTrue(dupeGroup.allEntriesExist()); //sanity check
+		
+		createAndAddMock(Paths.get("invalid/"));
+		assertFalse(dupeGroup.allEntriesExist());
+	}
+	
+	private void createAndAddMock(Path path) {
+		Entry mockEntry = mock(Entry.class);
+		when(mockEntry.getPath()).thenReturn(path);
+		
+		dupeGroup.addEntry(mockEntry);
 	}
 }
