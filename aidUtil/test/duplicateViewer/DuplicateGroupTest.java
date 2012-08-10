@@ -285,7 +285,23 @@ public class DuplicateGroupTest {
 		createAndAddMock(Paths.get("invalid/"));
 		assertFalse(dupeGroup.allEntriesExist());
 	}
-	
+
+	@Test
+	public void testResetRunningNumber() {
+		DuplicateGroup.resetRunningNumber();
+		DuplicateGroup group = new DuplicateGroup("");
+
+		assertThat(group.getGroupId(), is(0));
+
+		group = new DuplicateGroup("");
+		assertThat(group.getGroupId(), is(1));
+
+		DuplicateGroup.resetRunningNumber();
+		group = new DuplicateGroup("");
+
+		assertThat(group.getGroupId(), is(0));
+	}
+
 	private void createAndAddMock(Path path) {
 		Entry mockEntry = mock(Entry.class);
 		when(mockEntry.getPath()).thenReturn(path);

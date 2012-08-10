@@ -198,6 +198,10 @@ public class DuplicateGroup {
 		
 		return imgPath;
 	}
+	
+	public static void resetRunningNumber() {
+		groupRunningNumber = 0;
+	}
 
 	@Override
 	public boolean equals(Object o) {
