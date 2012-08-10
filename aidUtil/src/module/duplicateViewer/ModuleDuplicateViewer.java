@@ -152,6 +152,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		btnSelectAll.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				toggleGroup();
+				entryList.repaint();
 			}
 		});
 		duplicateViewOptions.add(btnSelectAll, "cell 0 1");
