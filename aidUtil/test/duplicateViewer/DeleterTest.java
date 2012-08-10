@@ -19,6 +19,7 @@ package duplicateViewer;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,6 +28,7 @@ import java.util.LinkedList;
 
 import javax.swing.DefaultListModel;
 
+import module.duplicateViewer.DatabaseHandler;
 import module.duplicateViewer.Deleter;
 import module.duplicateViewer.Entry;
 import module.duplicateViewer.DuplicateGroup;
@@ -38,17 +40,20 @@ public class DeleterTest {
 	LinkedList<Path> files;
 	static final int GROUP_SIZE = 5;
 	DuplicateGroup duplicateGroup;
+	DatabaseHandler dbHandler = mock(DatabaseHandler.class);
+	Deleter deleter;
 	
 	@Before
 	public void setup() throws IOException {
 		files = new LinkedList<>();
 		duplicateGroup = createDuplicateGroup(GROUP_SIZE, false);
+		deleter = new Deleter(dbHandler);
 	}
 	
 	@Test
 	public void testDeleteSelectedNoneMarked() throws IOException {
 		sanityCheck();
-		Deleter.deleteSelected(duplicateGroup);
+		deleter.deleteSelected(duplicateGroup);
 		
 		for(Path file : files){
 			assertThat(Files.exists(file), is(true));
@@ -61,7 +66,7 @@ public class DeleterTest {
 	public void testDeleteSelectedAllMarked() throws IOException {
 		duplicateGroup = createDuplicateGroup(GROUP_SIZE, true);
 		sanityCheck();
-		Deleter.deleteSelected(duplicateGroup);
+		deleter.deleteSelected(duplicateGroup);
 		
 		for(Path file : files){
 			assertThat(Files.exists(file), is(false));
@@ -92,7 +97,7 @@ public class DeleterTest {
 		
 		Path fileToDelete = entryToDelete.getPath();
 		
-		Deleter.deleteSelected(duplicateGroup);
+		deleter.deleteSelected(duplicateGroup);
 		
 		for(Path file : files){
 			assertThat(Files.exists(file), is(true));
@@ -111,7 +116,7 @@ public class DeleterTest {
 		sanityCheck();
 
 		model.addElement(duplicateGroup);
-		Deleter.deleteAllSelected(model);
+		deleter.deleteAllSelected(model);
 
 		for (Path file : files) {
 			assertThat(Files.exists(file), is(false));

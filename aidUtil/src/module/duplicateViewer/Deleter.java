@@ -25,7 +25,13 @@ import java.util.LinkedList;
 import javax.swing.DefaultListModel;
 
 public class Deleter {
-	public static void deleteAllSelected(DefaultListModel<DuplicateGroup> groupModel) throws IOException {
+	DatabaseHandler dbHandler;
+	
+	public Deleter(DatabaseHandler dbHandler) {
+		this.dbHandler = dbHandler;
+	}
+
+	public void deleteAllSelected(DefaultListModel<DuplicateGroup> groupModel) throws IOException {
 		int size = groupModel.getSize();
 
 		for (int i = 0; i < size; i++) {
@@ -34,7 +40,7 @@ public class Deleter {
 		}
 	}
 
-	public static void deleteSelected(DuplicateGroup group) throws IOException {
+	public void deleteSelected(DuplicateGroup group) throws IOException {
 		LinkedList<Entry> entries = group.getSelected();
 
 		for (Entry entry : entries) {
@@ -43,12 +49,13 @@ public class Deleter {
 		}
 	}
 
-	private static void deleteEntryFromDisk(Entry entry) throws IOException {
+	private void deleteEntryFromDisk(Entry entry) throws IOException {
 		Path entryPath = entry.getPath();
 		Files.delete(entryPath);
+		dbHandler.deleteFromDuplicates(entry);
 	}
 
-	private static void deleteEntryFromGroup(DuplicateGroup group, Entry entry) {
+	private void deleteEntryFromGroup(DuplicateGroup group, Entry entry) {
 		group.removeEntry(entry);
 	}
 }

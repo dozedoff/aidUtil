@@ -58,6 +58,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	boolean stop = false;
 	
 	DatabaseHandler dbHandler;
+	Deleter deleter;
 	
 	ListSelectionListener groupSelectionListener = new ListSelectionListener() {
 		
@@ -169,7 +170,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					Deleter.deleteAllSelected(glm);
+					deleter.deleteAllSelected(glm);
 				} catch (IOException e1) {
 					error("Delete failed: " + e1.getMessage());
 				}
@@ -191,8 +192,12 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		glm.removeAllElements();
 		elm.removeAllElements();
 		
+		DuplicateGroup.resetRunningNumber();
+		
 		discoverTags();
 		dbHandler = new DatabaseHandler(getConnectionPool(), tagMap);
+		deleter = new Deleter(dbHandler);
+		
 		loadDuplicates();
 		setStatus("Ready");
 	}
