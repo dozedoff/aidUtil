@@ -20,6 +20,8 @@ package module.duplicateViewer;
 import image.SubsamplingImageLoader;
 
 import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -63,7 +65,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
 			int index = groupList.getSelectedIndex();
-			if(isValidRange(index)){
+			if(isValidIndex(index)){
 				DuplicateGroup group = glm.get(index);
 				populateEntryList(group);
 				
@@ -71,9 +73,20 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 				displayImage(imagepath);
 			}
 		}
-		
-		private boolean isValidRange(int index) {
-			return (index >= 0 && index <= glm.getSize()-1 );
+	};
+	
+	ActionListener selectListener = new ActionListener() {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			int selections[] = entryList.getSelectedIndices();
+
+			for (int index : selections) {
+				Entry entry = elm.get(index);
+				toggleSelection(entry);
+			}
+			
+			entryList.repaint();
 		}
 	};
 	
@@ -83,6 +96,19 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	private JRadioButton groupFilterAll;
 	private JLabel lblGroupFilter;
 	private final ButtonGroup filterGroup = new ButtonGroup();
+	
+	private boolean isValidIndex(int index) {
+		return (index >= 0);
+	}
+
+	private void toggleSelection(Entry entry) {
+		if (entry.isSelected()) {
+			entry.setSelected(false);
+		} else {
+			entry.setSelected(true);
+		}
+	}
+
 	private void populateEntryList(DuplicateGroup group) {
 		elm.removeAllElements();
 		
@@ -108,7 +134,8 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		entryScrollPane = new JScrollPane(entryList);
 		groupScrollPane = new JScrollPane(groupList);
 		
-		groupList.addListSelectionListener(groupSelectionListener);
+
+		
 		
 		duplicateViewOptions.setLayout(new MigLayout("", "[70.00][200.00][grow]", "[grow][]"));
 		displayArea.setLayout(new MigLayout("fill"));
@@ -137,6 +164,16 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		groupFilterValid = new JRadioButton("Valid");
 		filterGroup.add(groupFilterValid);
 		duplicateViewOptions.add(groupFilterValid, "cell 1 1");
+		
+		addListeners();
+	}
+	
+	private void addListeners() {
+		groupList.removeListSelectionListener(groupSelectionListener);
+		groupList.addListSelectionListener(groupSelectionListener);
+		
+		entrySelect.removeActionListener(selectListener);
+		entrySelect.addActionListener(selectListener);
 	}
 
 	@Override

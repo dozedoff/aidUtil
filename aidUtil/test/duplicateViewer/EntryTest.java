@@ -33,14 +33,15 @@ import org.junit.Test;
 
 public class EntryTest {
 	Entry dupeEntry;
-
+	Path vaildPath;
+	
 	@Before
 	public void setUp() throws IOException {
 		createEntryWithValidPath();
 	}
 	
 	private void createEntryWithValidPath() throws IOException {
-		Path vaildPath = createValidFile();
+		vaildPath = createValidFile();
 		createEntry(vaildPath);
 	}
 
@@ -95,5 +96,18 @@ public class EntryTest {
 	@Test
 	public void testValidFileTimestamp() {
 		assertThat(dupeEntry.getLastModified(), is(100L));
+	}
+	
+	@Test
+	public void testToStringNotSelected() {
+		String expectedName = vaildPath.toString();
+		assertThat(dupeEntry.toString(), is(expectedName));
+	}
+	
+	@Test
+	public void testToStringSelected() {
+		String expectedName = "* " + vaildPath.toString();
+		dupeEntry.setSelected(true);
+		assertThat(dupeEntry.toString(), is(expectedName));
 	}
 }

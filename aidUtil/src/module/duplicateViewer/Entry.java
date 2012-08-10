@@ -89,12 +89,16 @@ public class Entry implements Comparable<Entry>{
 	public int compareTo(Entry o) {
 		return this.hash.compareTo(o.getHash());
 	}
-	
+
 	@Override
 	public String toString() {
-		return path.toString();
+		if (selected) {
+			return "* " + path.toString();
+		} else {
+			return path.toString();
+		}
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if(obj == null || !(obj instanceof Entry)){
