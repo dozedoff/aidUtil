@@ -22,21 +22,32 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedList;
 
+import javax.swing.DefaultListModel;
+
 public class Deleter {
+	public static void deleteAllSelected(DefaultListModel<DuplicateGroup> groupModel) throws IOException {
+		int size = groupModel.getSize();
+
+		for (int i = 0; i < size; i++) {
+			DuplicateGroup group = groupModel.get(i);
+			deleteSelected(group);
+		}
+	}
+
 	public static void deleteSelected(DuplicateGroup group) throws IOException {
 		LinkedList<Entry> entries = group.getSelected();
-		
-		for(Entry entry : entries){
+
+		for (Entry entry : entries) {
 			deleteEntryFromDisk(entry);
 			deleteEntryFromGroup(group, entry);
 		}
 	}
-	
-	private static void deleteEntryFromDisk(Entry entry) throws IOException{
+
+	private static void deleteEntryFromDisk(Entry entry) throws IOException {
 		Path entryPath = entry.getPath();
 		Files.delete(entryPath);
 	}
-	
+
 	private static void deleteEntryFromGroup(DuplicateGroup group, Entry entry) {
 		group.removeEntry(entry);
 	}

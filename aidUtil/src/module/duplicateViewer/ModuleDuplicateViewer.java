@@ -95,6 +95,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	private JRadioButton groupFilterAll;
 	private JLabel lblGroupFilter;
 	private final ButtonGroup filterGroup = new ButtonGroup();
+	private JButton btnDelete;
 	
 	private boolean isValidIndex(int index) {
 		return (index >= 0);
@@ -164,17 +165,26 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		filterGroup.add(groupFilterValid);
 		duplicateViewOptions.add(groupFilterValid, "cell 1 1");
 		
+		btnDelete = new JButton("Delete selected");
+		btnDelete.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					Deleter.deleteAllSelected(glm);
+				} catch (IOException e1) {
+					error("Delete failed: " + e1.getMessage());
+				}
+			}
+		});
+		duplicateViewOptions.add(btnDelete, "cell 2 1");
+		
 		addListeners();
 	}
 	
 	private void addListeners() {
-		groupList.removeListSelectionListener(groupSelectionListener);
 		groupList.addListSelectionListener(groupSelectionListener);
-		
-		entrySelect.removeActionListener(selectListener);
 		entrySelect.addActionListener(selectListener);
 	}
-
+	
 	@Override
 	public void start() {
 		stop = false;

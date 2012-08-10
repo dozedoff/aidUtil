@@ -25,6 +25,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedList;
 
+import javax.swing.DefaultListModel;
+
 import module.duplicateViewer.Deleter;
 import module.duplicateViewer.Entry;
 import module.duplicateViewer.DuplicateGroup;
@@ -68,6 +70,17 @@ public class DeleterTest {
 		assertThat(duplicateGroup.isEmpty(), is(true));
 	}
 	
+	private DuplicateGroup createDuplicateGroup(int groupSize, boolean entriesAreSelected) throws IOException {
+		files.clear();
+		DuplicateGroup duplicateGroup = new DuplicateGroup("1");
+		
+		for(int i=0; i < groupSize; i++){
+			duplicateGroup.addEntry(createDuplicateEntry(entriesAreSelected));
+		}
+		
+		return duplicateGroup;
+	}
+
 	@Test
 	public void testDeleteSelectedOneIsMarked() throws IOException {
 		sanityCheck();
@@ -91,6 +104,22 @@ public class DeleterTest {
 		
 	}
 	
+	@Test
+	public void testDeleteAllSelected() throws IOException {
+		DefaultListModel<DuplicateGroup> model = new DefaultListModel<>();
+		duplicateGroup = createDuplicateGroup(GROUP_SIZE, true);
+		sanityCheck();
+
+		model.addElement(duplicateGroup);
+		Deleter.deleteAllSelected(model);
+
+		for (Path file : files) {
+			assertThat(Files.exists(file), is(false));
+		}
+
+		assertThat(duplicateGroup.isEmpty(), is(true));
+	}
+	
 	private void sanityCheck() {
 		assertThat(files.size(), is(GROUP_SIZE));
 		for(Path file : files){
@@ -101,19 +130,8 @@ public class DeleterTest {
 	private Entry createDuplicateEntry(boolean entryIsSelected) throws IOException {
 		Path testFile = Files.createTempFile("DuplicateDeleterTest", ".txt");
 		files.add(testFile);
-		Entry entry = new Entry("12345", testFile, 0);
+		Entry entry = new Entry("12345", testFile);
 		entry.setSelected(entryIsSelected);
 		return entry;
-	}
-	
-	private DuplicateGroup createDuplicateGroup(int groupSize, boolean entriesAreSelected) throws IOException {
-		files.clear();
-		DuplicateGroup duplicateGroup = new DuplicateGroup();
-		
-		for(int i=0; i < groupSize; i++){
-			duplicateGroup.addEntry(createDuplicateEntry(entriesAreSelected));
-		}
-		
-		return duplicateGroup;
 	}
 }
