@@ -97,6 +97,7 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	private JLabel lblGroupFilter;
 	private final ButtonGroup filterGroup = new ButtonGroup();
 	private JButton btnDelete;
+	private JButton btnSelectAll;
 	
 	private boolean isValidIndex(int index) {
 		return (index >= 0);
@@ -147,8 +148,13 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 		
 		container.add(duplicateViewOptions, "grow, push");
 		
-		entrySelect = new JButton("Select");
-		duplicateViewOptions.add(entrySelect, "cell 0 1,growx");
+		btnSelectAll = new JButton("Select All");
+		btnSelectAll.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				toggleGroup();
+			}
+		});
+		duplicateViewOptions.add(btnSelectAll, "cell 0 1");
 		
 		lblGroupFilter = new JLabel("Group filter:");
 		duplicateViewOptions.add(lblGroupFilter, "flowx,cell 1 1");
@@ -176,6 +182,9 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 				}
 			}
 		});
+		
+		entrySelect = new JButton("Select");
+		duplicateViewOptions.add(entrySelect, "flowx,cell 2 1,alignx left");
 		duplicateViewOptions.add(btnDelete, "cell 2 1");
 		
 		addListeners();
@@ -184,6 +193,19 @@ public class ModuleDuplicateViewer extends MaintenanceModule{
 	private void addListeners() {
 		groupList.addListSelectionListener(groupSelectionListener);
 		entrySelect.addActionListener(selectListener);
+	}
+	
+	private void toggleGroup() {
+		int index = groupList.getSelectedIndex();
+		if(isValidIndex(index)){
+			DuplicateGroup group = glm.get(index);
+			
+			if(group.areAllSelected()){
+				group.selectAll(false);
+			}else{
+				group.selectAll(true);
+			}
+		}
 	}
 	
 	@Override

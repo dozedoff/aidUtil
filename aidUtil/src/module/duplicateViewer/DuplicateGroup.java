@@ -202,6 +202,12 @@ public class DuplicateGroup {
 	public static void resetRunningNumber() {
 		groupRunningNumber = 0;
 	}
+	
+	public void selectAll(boolean select) {
+		for(Entry entry : entries){
+			entry.setSelected(select);
+		}
+	}
 
 	@Override
 	public boolean equals(Object o) {

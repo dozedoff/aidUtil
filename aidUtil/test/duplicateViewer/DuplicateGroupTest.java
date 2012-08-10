@@ -301,6 +301,40 @@ public class DuplicateGroupTest {
 
 		assertThat(group.getGroupId(), is(0));
 	}
+	
+	@Test
+	public void testSelectAll() throws IOException {
+		createEntriesWithTempFiles();
+
+		dupeGroup.selectAll(true);
+
+		assertTrue(dupeGroup.areAllSelected());
+	}
+
+	@Test
+	public void testDeSelectAll() throws IOException {
+		createEntriesWithTempFiles();
+
+		for (Entry entry : dupeGroup.getEntries()) {
+			entry.setSelected(true);
+		}
+
+		assertTrue(dupeGroup.areAllSelected()); //sanity check
+
+		dupeGroup.selectAll(false);
+
+		assertFalse(dupeGroup.areAllSelected());
+	}
+
+
+	private void createEntriesWithTempFiles() throws IOException {
+		Path file1 = Files.createTempFile("DuplicatGroupTestFile1", null);
+		Path file2 = Files.createTempFile("DuplicatGroupTestFile2", null);
+		
+		dupeGroup = new DuplicateGroup("1");
+		dupeGroup.addEntry(new Entry("1", file1));
+		dupeGroup.addEntry(new Entry("1", file2));
+	}
 
 	private void createAndAddMock(Path path) {
 		Entry mockEntry = mock(Entry.class);
