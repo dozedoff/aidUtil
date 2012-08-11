@@ -64,7 +64,7 @@ public class FileHasherTest {
 		fileHasher.hashFiles();
 		
 		assertThat(output.size(), is(1));
-		assertThat(output.poll().getFileInfo().getHash(), is(expectedTestHash));
+		assertThat(output.poll().getHash(), is(expectedTestHash));
 	}
 	
 	@Test
@@ -73,6 +73,6 @@ public class FileHasherTest {
 		
 		fileHasher.hashFiles();
 		
-		assertThat(output.poll().getFileInfo().getSize(), is(150L));
+		assertThat(output.poll().getSize(), is(150L));
 	}
 }

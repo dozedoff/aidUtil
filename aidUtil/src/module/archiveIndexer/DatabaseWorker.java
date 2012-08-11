@@ -17,9 +17,7 @@
  */
 package module.archiveIndexer;
 
-import java.nio.file.Path;
 import java.util.concurrent.LinkedBlockingQueue;
-
 
 import file.FileInfo;
 
@@ -72,11 +70,8 @@ public class DatabaseWorker extends Thread{
 	}
 	
 	private FileInfo reWritePath(ArchiveFile archiveFile){
-		FileInfo info = archiveFile.getFileInfo();
-		Path archivePath = archiveFile.getArchivePath();
+		archiveFile.setFile(reWriter.reWritePath(archiveFile.getFilePath(), archiveFile.getArchivePath()));
 		
-		info.setFile(reWriter.reWritePath(info.getFilePath(), archivePath));
-		
-		return info;
+		return archiveFile;
 	}
 }

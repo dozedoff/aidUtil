@@ -25,7 +25,7 @@ public class PathRewriter {
 	public PathRewriter(Path tempDirectory) {
 		this.tempDirectory = tempDirectory;
 	}
-
+	//TODO replace this method with one that uses ArchiveFile
 	public Path reWritePath(Path sourcePath, Path archivePath) {
 		Path reWritten = null;
 		

@@ -20,21 +20,24 @@ package module.archiveIndexer;
 import java.nio.file.Path;
 
 import file.FileInfo;
-
-public class ArchiveFile {
+public class ArchiveFile extends FileInfo{
 	private final Path archivePath;
-	private final FileInfo fileInfo;
 
 	public ArchiveFile(FileInfo fileInfo, Path archivePath) {
-		this.fileInfo = fileInfo;
+		super(fileInfo.getFilePath(), fileInfo.getHash());
 		this.archivePath = archivePath;
+		this.setSize(fileInfo.getSize());
 	}
 
 	public Path getArchivePath() {
 		return archivePath;
 	}
 
+	/**
+	 * Use accessor methods directly instead.
+	 */
+	@Deprecated
 	public FileInfo getFileInfo() {
-		return fileInfo;
+		return this;
 	}
 }

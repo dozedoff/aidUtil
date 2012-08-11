@@ -18,7 +18,6 @@
 package module.archiveIndexer;
 
 import file.BinaryFileReader;
-import file.FileInfo;
 import hash.HashMaker;
 
 import java.io.IOException;
@@ -37,14 +36,12 @@ public class FileHasher {
 	}
 	
 	public void hashFiles() throws InterruptedException, IOException{
-		FileInfo currentFile;
 		ArchiveFile archiveFile;
 		
 		while(! inputQueue.isEmpty()){
 			archiveFile = inputQueue.take();
-			currentFile = archiveFile.getFileInfo();
-			currentFile.setHash(hashFile(currentFile.getFilePath()));
-			currentFile.setSize(Files.size(currentFile.getFilePath()));
+			archiveFile.setHash(hashFile(archiveFile.getFilePath()));
+			archiveFile.setSize(Files.size(archiveFile.getFilePath()));
 			outputQueue.put(archiveFile);
 		}
 	}
