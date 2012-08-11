@@ -25,7 +25,10 @@ public class PathRewriter {
 	public PathRewriter(Path tempDirectory) {
 		this.tempDirectory = tempDirectory;
 	}
-	//TODO replace this method with one that uses ArchiveFile
+	/**
+	 * Use {@link PathRewriter#reWritePath(ArchiveFile) instead.}
+	 */
+	@Deprecated
 	public Path reWritePath(Path sourcePath, Path archivePath) {
 		Path reWritten = null;
 		
@@ -33,5 +36,12 @@ public class PathRewriter {
 		reWritten = archivePath.resolve(relativeSource);
 		
 		return reWritten;
+	}
+	
+	public void reWritePath(ArchiveFile archiveFile) {
+		Path relativeSource = tempDirectory.relativize(archiveFile.getFilePath());
+		Path archivePath = archiveFile.getArchivePath();
+		Path reWrittenPath = archivePath.resolve(relativeSource);
+		archiveFile.setFile(reWrittenPath);
 	}
 }

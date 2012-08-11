@@ -49,8 +49,8 @@ public class DatabaseWorker extends Thread{
 	private void doWork() throws InterruptedException {
 		while(! isInterrupted()){
 			ArchiveFile archiveFile = outputQueue.take();
-			FileInfo currentFile = reWritePath(archiveFile);
-			addToDatabse(currentFile);
+			reWriter.reWritePath(archiveFile);
+			addToDatabse(archiveFile);
 		}
 	}
 	
@@ -67,11 +67,5 @@ public class DatabaseWorker extends Thread{
 		default:
 			break;
 		}
-	}
-	
-	private FileInfo reWritePath(ArchiveFile archiveFile){
-		archiveFile.setFile(reWriter.reWritePath(archiveFile.getFilePath(), archiveFile.getArchivePath()));
-		
-		return archiveFile;
 	}
 }

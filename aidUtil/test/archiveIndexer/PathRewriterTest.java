@@ -20,36 +20,64 @@ package archiveIndexer;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import module.archiveIndexer.ArchiveFile;
 import module.archiveIndexer.PathRewriter;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import file.FileInfo;
+
 public class PathRewriterTest {
-	final static String TEMP_FOLDER_PATH = "C:\\temp\\";
-	final static String SOURCE1_PATH = "C:\\temp\\foobar.txt";
-	final static String SOURCE2_PATH = "C:\\temp\\foo\\bar\\foobar.txt";
-	final static String ARCHIVE_PATH = "D:\\zip\\other\\testArchive.7z";
-	final static String REWRITTEN1_PATH = "D:\\zip\\other\\testArchive.7z\\foobar.txt";
-	final static String REWRITTEN2_PATH = "D:\\zip\\other\\testArchive.7z\\foo\\bar\\foobar.txt";
-	
+	Path TEMP_FOLDER_PATH, SOURCE1_PATH, SOURCE2_PATH, ARCHIVE_PATH, REWRITTEN1_PATH, REWRITTEN2_PATH;
 	PathRewriter reWriter;
 	
 	@Before
 	public void setUp() {
-		reWriter = new PathRewriter(Paths.get(TEMP_FOLDER_PATH));
+		TEMP_FOLDER_PATH = Paths.get("C:\\temp\\");
+		SOURCE1_PATH = Paths.get("C:\\temp\\foobar.txt");
+		SOURCE2_PATH = Paths.get("C:\\temp\\foo\\bar\\foobar.txt");
+		ARCHIVE_PATH = Paths.get("D:\\zip\\other\\testArchive.7z");
+		REWRITTEN1_PATH = Paths.get("D:\\zip\\other\\testArchive.7z\\foobar.txt");
+		REWRITTEN2_PATH = Paths.get("D:\\zip\\other\\testArchive.7z\\foo\\bar\\foobar.txt");
+		
+		reWriter = new PathRewriter(TEMP_FOLDER_PATH);
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testReWritePathRoot() {
-		assertThat(reWriter.reWritePath(Paths.get(SOURCE1_PATH), Paths.get(ARCHIVE_PATH)), is(Paths.get(REWRITTEN1_PATH)));
+		assertThat(reWriter.reWritePath(SOURCE1_PATH, ARCHIVE_PATH), is(REWRITTEN1_PATH));
+	}
+	
+	@SuppressWarnings("deprecation")
+	@Test
+	public void testReWritePathSubDirectory() {
+		assertThat(reWriter.reWritePath(SOURCE2_PATH, ARCHIVE_PATH), is(REWRITTEN2_PATH));
 	}
 	
 	@Test
-	public void testReWritePathSubDirectory() {
-		assertThat(reWriter.reWritePath(Paths.get(SOURCE2_PATH), Paths.get(ARCHIVE_PATH)), is(Paths.get(REWRITTEN2_PATH)));
+	public void testReWritePathRootArchiveFile() {
+		ArchiveFile archive = createArchiveFile(SOURCE1_PATH);
+		reWriter.reWritePath(archive);
+		
+		assertThat(archive.getFilePath(), is(REWRITTEN1_PATH));
+	}
+	
+	@Test
+	public void testReWritePathSubDirectoryArchiveFile() {
+		ArchiveFile archive = createArchiveFile(SOURCE2_PATH);
+		reWriter.reWritePath(archive);
+		
+		assertThat(archive.getFilePath(), is(REWRITTEN2_PATH));
 	}
 
+	private ArchiveFile createArchiveFile(Path sourcePath) {
+		FileInfo info = new FileInfo(sourcePath);
+		ArchiveFile archive = new ArchiveFile(info, ARCHIVE_PATH);
+		return archive;
+	}
 }
