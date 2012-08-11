@@ -18,39 +18,16 @@
 package module.archiveIndexer;
 
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
 
-import filefilter.ArchiveFilter;
+import file.ArchiveVisitor;
 
 public abstract class ArchiveFinder {
-	LinkedList<Path> archives;
-	
 	public static LinkedList<Path> find(Path directory) throws IOException{
 		LinkedList<Path> archives = new LinkedList<>();
 		Files.walkFileTree(directory, new ArchiveVisitor(archives));
 		return archives;
-	}
-}
-
-class ArchiveVisitor extends SimpleFileVisitor<Path> {
-	ArchiveFilter archiveFilter = new ArchiveFilter();
-	LinkedList<Path> archiveList;
-	
-	public ArchiveVisitor(LinkedList<Path> archiveList) {
-		this.archiveList = archiveList;
-	}
-
-	@Override
-	public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
-		if(archiveFilter.accept(file.toFile())){
-			archiveList.add(file);
-		}
-		
-		return FileVisitResult.CONTINUE;
 	}
 }
