@@ -86,8 +86,7 @@ public class DatabaseHandlerTest extends DatabaseTestCase {
 	
 	@Test
 	public void testDeleteFromDuplicates() throws Exception {
-		Entry toDelete = new Entry("40", null);
-		
+		Entry toDelete = new Entry("40", Paths.get("\\mutated\\custard\\is\\dangerous\\squirrel.jpg"));
 		dbHandler.deleteFromDuplicates(toDelete);
 		
 		Assertion.assertEquals(getCompositeFileTable(INDEX_TABLE, DuplicateDelete_PATH), getDatabaseTable(INDEX_TABLE));

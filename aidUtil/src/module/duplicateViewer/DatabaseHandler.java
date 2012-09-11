@@ -73,7 +73,6 @@ public class DatabaseHandler {
 	}
 	
 	public void deleteFromDuplicates(Entry entry) {
-		String hash = entry.getHash();
-		sql.delete(AidTables.Fileduplicate, hash);
+		sql.deleteDuplicateByPath(entry.getPath());
 	}
 }
