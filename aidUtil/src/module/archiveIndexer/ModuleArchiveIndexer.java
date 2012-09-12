@@ -95,12 +95,15 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 		
 		try {
 			aidUtilSettings.load(Core.class.getResourceAsStream("aidUtil.properties"));
+			info("Searching for archives...");
 			foundArchives = ArchiveFinder.find(Paths.get(getPath()));
 		} catch (IOException e) {
 			// program
 			error("Failed to load aidUtil.properties: " + e.getMessage());
 			return;
 		}
+		
+		info("Found " + foundArchives.size() + " archives.");
 		
 		appPath = Paths.get((String)aidUtilSettings.get(APP_PATH_KEY));
 		unpacker = new ArchiveUnpacker(appPath);
