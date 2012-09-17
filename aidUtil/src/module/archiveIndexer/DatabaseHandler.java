@@ -17,24 +17,38 @@
  */
 package module.archiveIndexer;
 
+import java.sql.SQLException;
+
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.support.ConnectionSource;
+
 import io.AidDAO;
 import io.AidTables;
 import io.ConnectionPool;
+import io.dao.DuplicateDAO;
+import io.dao.IndexDAO;
+import io.tables.DuplicateRecord;
+import io.tables.IndexRecord;
 import file.FileInfo;
 
 public class DatabaseHandler {
-	private final AidDAO sql;
 	private final static String ARCHIVE_LOCATION_TAG = "ARCHIVE";
+	private ConnectionSource cSource;
+	private IndexDAO indexDao;
+	private DuplicateDAO duplicateDao;
 	
-	public DatabaseHandler(ConnectionPool connPool) {
-		this.sql = new AidDAO(connPool);
+	public DatabaseHandler(ConnectionPool connPool) throws SQLException {
+		this.cSource = connPool.getConnectionSource();
+		indexDao = DaoManager.createDao(cSource, IndexRecord.class);
+		duplicateDao = DaoManager.createDao(cSource, DuplicateRecord.class); 
 	}
 
+	//FIXME: do not add identical hash & path file to duplicate
 	public void addIndex(FileInfo fileInfo){
 		String fileHash = fileInfo.getHash();
 		
-		if(! sql.isHashed(fileHash)){
-			sql.addIndex(fileInfo, ARCHIVE_LOCATION_TAG);
+		if(! isIndexed(fileInfo)){
+			indexDao.create(new IndexRecord(info, location));
 			return;
 		}
 		
@@ -48,6 +62,16 @@ public class DatabaseHandler {
 	private boolean isArchived(String fileHash){
 		String locDbTag = sql.getLocationById(fileHash);
 		return locDbTag.equalsIgnoreCase(ARCHIVE_LOCATION_TAG);
+	}
+	
+	private boolean isIndexed(FileInfo info) throws SQLException {
+		IndexRecord index = indexDao.queryForId(info.getHash());
+
+		if (index != null) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	private void moveAndInsertIndex(FileInfo info){

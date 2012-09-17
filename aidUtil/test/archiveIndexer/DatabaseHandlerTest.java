@@ -105,6 +105,15 @@ public class DatabaseHandlerTest extends DatabaseTestCase{
 		Assertion.assertEquals(getCompositeFileTable(DUPLICATE_TABLE, indexAddArchiveExistingArchiveData_PATH), getDatabaseTable(DUPLICATE_TABLE));
 	}
 	
+	@Test
+	public void testAddIndexExistingArchiveIdentical() throws Exception {
+		addIndex("5");
+		addIndex("5");
+		
+		Assertion.assertEquals(getCompositeFileTable(INDEX_TABLE, DataBaseHandler_PATH, indexAddArchiveData_PATH), getDatabaseTable(INDEX_TABLE));	
+		Assertion.assertEquals(getCompositeFileTable(DUPLICATE_TABLE, DataBaseHandler_PATH), getDatabaseTable(DUPLICATE_TABLE));
+	}
+	
 	private void addIndex(String id){
 		FileInfo fi = new FileInfo(Paths.get("X:\\foo\\bar\\foo.png"), id);
 		fi.setSize(23452345);
