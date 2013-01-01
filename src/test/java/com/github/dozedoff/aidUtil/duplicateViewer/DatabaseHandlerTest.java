@@ -68,8 +68,8 @@ public class DatabaseHandlerTest extends DatabaseTestCase {
 		HashMap<String, Path> tagMap = generateTagList("DL_CLIENT", "LOCATION_A");
 		dbHandler = new DatabaseHandler(bcp, tagMap);
 		
-		expectedDuplicate = new Entry("40", Paths.get("\\mutated\\custard\\is\\dangerous\\", "squirrel.jpg"));
-		expectedOriginal = new Entry("40", Paths.get("\\mutated\\custard\\is\\dangerous\\", "foo.png"));
+		expectedDuplicate = new Entry("40", Paths.get("mutated/custard/is/dangerous/", "squirrel.jpg"));
+		expectedOriginal = new Entry("40", Paths.get("mutated/custard/is/dangerous/", "foo.png"));
 	}
 	
 	private HashMap<String, Path> generateTagList(String... tags){
@@ -86,7 +86,7 @@ public class DatabaseHandlerTest extends DatabaseTestCase {
 	
 	@Test
 	public void testDeleteFromDuplicates() throws Exception {
-		Entry toDelete = new Entry("40", Paths.get("\\mutated\\custard\\is\\dangerous\\squirrel.jpg"));
+		Entry toDelete = new Entry("40", Paths.get("mutated/custard/is/dangerous/squirrel.jpg"));
 		dbHandler.deleteFromDuplicates(toDelete);
 		
 		Assertion.assertEquals(getCompositeFileTable(INDEX_TABLE, DuplicateDelete_PATH), getDatabaseTable(INDEX_TABLE));

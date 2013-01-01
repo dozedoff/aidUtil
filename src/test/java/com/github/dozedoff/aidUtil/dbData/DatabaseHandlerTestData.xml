@@ -18,14 +18,14 @@
  -->
 <dataset>
     <!-- location_tags table -->
-    <location_tags tag_id="0" location="DL_CLIENT"/>
-    <location_tags tag_id="1" location="LOCATION A"/>
-    <location_tags tag_id="2" location="ARCHIVE"/>
+    <location_tags tag_id="1" location="DL_CLIENT"/>
+    <location_tags tag_id="2" location="LOCATION A"/>
+    <location_tags tag_id="3" location="ARCHIVE"/>
 	
 	<!-- dirlist Table -->
-	<dirlist id="1" dirpath="\foo\bar\" />
-	<dirlist id="2" dirpath="\test\me\now\" />
-	<dirlist id="3" dirpath="\mutated\custard\is\dangerous\" />
+	<dirlist id="1" dirpath="foo/bar/" />
+	<dirlist id="2" dirpath="test/me/now/" />
+	<dirlist id="3" dirpath="mutated/custard/is/dangerous/" />
 
 	<!-- filelist Table -->
 	<filelist id="1" filename="foo.png" />
@@ -33,17 +33,17 @@
 	<filelist id="3" filename="meerkat.gif" />
 
 	<!--fileindex Table -->
-	<fileindex id="1" size="34568" 		dir="1" filename="1" location="0"/>
-	<fileindex id="2" size="790332" 	dir="2" filename="2" location="1"/>
-	<fileindex id="3" size="5789699" 	dir="3" filename="3" location="2"/>
-	<fileindex id="4" size="542322" 	dir="3" filename="2" location="1"/>
-	<fileindex id="40" size="233" 		dir="3" filename="1" location="1"/>
+	<fileindex id="1" size="34568" 		dir="1" filename="1" location="1"/>
+	<fileindex id="2" size="790332" 	dir="2" filename="2" location="2"/>
+	<fileindex id="3" size="5789699" 	dir="3" filename="3" location="3"/>
+	<fileindex id="4" size="542322" 	dir="3" filename="2" location="2"/>
+	<fileindex id="40" size="233" 		dir="3" filename="1" location="2"/>
 	
 	<!--fileduplicate Table -->
-	<fileduplicate id="10" size="34568" 	dir="1" filename="1" location="0"/>
-	<fileduplicate id="20" size="790332" 	dir="2" filename="2" location="1"/>
-	<fileduplicate id="30" size="5789699" 	dir="3" filename="3" location="2"/>
-	<fileduplicate id="40" size="542322" 	dir="3" filename="2" location="2"/>
+	<fileduplicate id="10" size="34568" 	dir="1" filename="1" location="1"/>
+	<fileduplicate id="20" size="790332" 	dir="2" filename="2" location="2"/>
+	<fileduplicate id="30" size="5789699" 	dir="3" filename="3" location="3"/>
+	<fileduplicate id="40" size="542322" 	dir="3" filename="2" location="3"/>
 	
 	<!--DNW Table -->
 	<dnw id="00"/>
