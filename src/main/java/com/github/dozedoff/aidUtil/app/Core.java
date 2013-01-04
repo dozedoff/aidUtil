@@ -17,25 +17,36 @@
  */
 package com.github.dozedoff.aidUtil.app;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 import com.github.dozedoff.aidUtil.gui.AidUtil;
 import com.github.dozedoff.aidUtil.module.MaintenanceModule;
 import com.github.dozedoff.aidUtil.module.ModuleFactory;
 import com.github.dozedoff.commonj.file.FileUtil;
 import com.github.dozedoff.commonj.file.FileWalker;
+import com.github.dozedoff.commonj.file.TextFileReader;
 import com.github.dozedoff.commonj.io.BoneConnectionPool;
 import com.github.dozedoff.commonj.io.ConnectionPool;
 
 public class Core {
 	AidUtil aidUtil;
 	ConnectionPool connPool;
-	
+	Logger logger = LoggerFactory.getLogger(Core.class);
 	public static void main(String args[]){
 		new Core().startCore();
 	}
@@ -51,13 +62,14 @@ public class Core {
 			connPool = new BoneConnectionPool(dbProps,5);
 			connPool.startPool();
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Failed to connect to database", e);
 		}
 		
 		try {
 			aidUtil = new AidUtil(this, loadModules(), connPool);
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			logger.error("Failed to start AidUtil", e);
+			System.exit(1);
 		}
 		
 		aidUtil.setVisible(true);
@@ -67,30 +79,34 @@ public class Core {
 	 * This method creates an instance of all maintenance modules in the bin/module directory
 	 * @return a list of instances of all maintenance modules
 	 * @throws IOException 
+	 * @throws URISyntaxException 
 	 */
-	public List<MaintenanceModule> loadModules() throws IOException{
-		String relativePath = "bin";
-		Path moduleDir = Paths.get(FileUtil.WorkingDir().toString(),relativePath);
-		LinkedList<Path> moduleFiles = FileWalker.walkFileTreeWithFilter(moduleDir, new ModuleFilter());
-		
+	public List<MaintenanceModule> loadModules() throws IOException, URISyntaxException{
 		LinkedList<MaintenanceModule> modules = new LinkedList<>();
-
-		for(Path file : moduleFiles){
+		
+		String modulelistFileName = "modulelist.txt";
+		File moduleListFile = new File(FileUtil.WorkingDir(), modulelistFileName);
+		logger.info("Loading module list from {}", moduleListFile);
+		
+		if(!moduleListFile.exists()){
+			logger.error("Could not find module list {}", moduleListFile);
+			return modules;
+		}
+		
+		String moduleList = new TextFileReader().read(moduleListFile);
+		String[] moduleEntries = moduleList.split("(\n|\r\n)");
+		logger.info("Found {} entries in module list", moduleEntries.length);
+		
+		for(String fullyqualifiedName : moduleEntries){
 				try {
-					String qualifiedName = createQualifiedName(moduleDir, file);
-					modules.add(ModuleFactory.createInstance(qualifiedName));
+					logger.info("Loading module {}", fullyqualifiedName);
+					modules.add(ModuleFactory.createInstance(fullyqualifiedName));
 				} catch (Exception e) {
-					e.printStackTrace();
+					logger.error("Failed to load module {}", fullyqualifiedName, e);
 				}
 		}
+		
+		logger.info("Modules loaded");
 		return modules;
-	}
-	
-	private String createQualifiedName(Path basePath, Path filepath) {
-		Path relativePath = basePath.relativize(filepath);
-		String qualifiedName = relativePath.toString();
-		qualifiedName = qualifiedName.replace("\\", ".");
-		qualifiedName = qualifiedName.replace(".class", "");
-		return qualifiedName;
 	}
 }

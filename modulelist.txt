@@ -1,0 +1,4 @@
+com.github.dozedoff.aidUtil.module.archiveIndexer.ModuleArchiveIndexer
+com.github.dozedoff.aidUtil.module.duplicateViewer.ModuleDuplicateViewer
+com.github.dozedoff.aidUtil.module.manageFiles.ModuleManageFiles
+com.github.dozedoff.aidUtil.module.manageLists.ModuleManageLists
