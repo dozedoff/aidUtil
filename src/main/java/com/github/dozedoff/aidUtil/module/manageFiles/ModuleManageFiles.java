@@ -197,8 +197,7 @@ public class ModuleManageFiles extends MaintenanceModule {
 			return;
 		}
 		
-		locationTag = checkTag(f.toPath()); //TODO replace this with util.LocationTag
-		// this should be much safer than using a predefined props file
+		locationTag = checkTag(f.toPath());
 		drive = Paths.get(getPath()).getRoot().toString(); 
 		
 		
