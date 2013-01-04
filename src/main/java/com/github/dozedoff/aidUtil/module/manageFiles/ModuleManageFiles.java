@@ -46,6 +46,9 @@ import javax.swing.JRadioButton;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.dozedoff.aidUtil.module.MaintenanceModule;
 import com.github.dozedoff.commonj.file.BinaryFileReader;
 import com.github.dozedoff.commonj.file.FileUtil;
@@ -59,6 +62,8 @@ public class ModuleManageFiles extends MaintenanceModule {
 	
 	final int WORKERS = 2; // number of threads hashing data and communicating with the DB
 	final int FILE_QUEUE_SIZE = 100; // setting this too high will probably result in "out of memory" errors
+	
+	Logger logger = LoggerFactory.getLogger(ModuleManageFiles.class);
 
 	LinkedList<Path> pendingFiles = new LinkedList<>();
 	LinkedList<Path> blacklistedDir = new LinkedList<>();
@@ -546,10 +551,8 @@ public class ModuleManageFiles extends MaintenanceModule {
 					if(index){
 						File f = fd.file.toFile();
 						if(sql.isHashed(hash)){
-							String path = sql.getPath(hash);
-							if(path == null || (! path.equals(f.toString().toLowerCase()))){
-								sql.addDuplicate(hash, f.toString(), f.length(), locationTag);
-							}
+							// removed duplicate adding due to unreliable code
+							logger.info("Hash {} for {} found in db, ignoring file", hash, f);
 						}else{
 							if(! sql.addIndex(hash, f.toString(), f.length(), locationTag)){
 								error("Failed to add index for " + f.toString() + " - " + hash);
