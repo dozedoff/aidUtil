@@ -32,11 +32,26 @@ public class PathTests {
 	}
 
 	@Test
-	public void test() {
+	public void testCasePath() {
 		Path path1 = Paths.get("C:\\Windows\\temp");
 		Path path2 = Paths.get("c:\\windows\\temp");
 		
 		assertTrue(path1.equals(path2));
 	}
 
+	@Test
+	public void testPathSeperators() {
+		Path path1 = Paths.get("C:\\Windows\\temp");
+		Path path2 = Paths.get("C:/Windows/temp");
+		
+		assertTrue(path1.equals(path2));
+	}
+	
+	@Test
+	public void testPathSeperatorsRelative() {
+		Path path1 = Paths.get("Windows\\temp");
+		Path path2 = Paths.get("Windows/temp");
+		
+		assertTrue(path1.equals(path2));
+	}
 }
