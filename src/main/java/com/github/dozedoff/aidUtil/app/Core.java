@@ -17,15 +17,8 @@
  */
 package com.github.dozedoff.aidUtil.app;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -37,9 +30,6 @@ import org.slf4j.LoggerFactory;
 import com.github.dozedoff.aidUtil.gui.AidUtil;
 import com.github.dozedoff.aidUtil.module.MaintenanceModule;
 import com.github.dozedoff.aidUtil.module.ModuleFactory;
-import com.github.dozedoff.commonj.file.FileUtil;
-import com.github.dozedoff.commonj.file.FileWalker;
-import com.github.dozedoff.commonj.file.TextFileReader;
 import com.github.dozedoff.commonj.io.BoneConnectionPool;
 import com.github.dozedoff.commonj.io.ConnectionPool;
 
@@ -52,11 +42,10 @@ public class Core {
 	}
 	
 	public void startCore(){
+		Settings.getInstance().loadSettings();
 		
 		try {
-			// load database properties
-			Properties dbProps = new Properties();
-			dbProps.load(Core.class.getResourceAsStream("db.properties"));
+			Properties dbProps = Settings.getInstance().getDbProperties();
 			
 			// create connection pool
 			connPool = new BoneConnectionPool(dbProps,5);
@@ -84,18 +73,7 @@ public class Core {
 	public List<MaintenanceModule> loadModules() throws IOException, URISyntaxException{
 		LinkedList<MaintenanceModule> modules = new LinkedList<>();
 		
-		String modulelistFileName = "modulelist.txt";
-		File moduleListFile = new File(FileUtil.WorkingDir(), modulelistFileName);
-		logger.info("Loading module list from {}", moduleListFile);
-		
-		if(!moduleListFile.exists()){
-			logger.error("Could not find module list {}", moduleListFile);
-			return modules;
-		}
-		
-		String moduleList = new TextFileReader().read(moduleListFile);
-		String[] moduleEntries = moduleList.split("(\n|\r\n)");
-		logger.info("Found {} entries in module list", moduleEntries.length);
+		String[] moduleEntries = Settings.getInstance().getModuleNames();
 		
 		for(String fullyqualifiedName : moduleEntries){
 				try {

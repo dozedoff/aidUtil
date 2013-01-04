@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.swing.ButtonGroup;
@@ -34,15 +33,13 @@ import javax.swing.JTextField;
 
 import net.miginfocom.swing.MigLayout;
 
-import com.github.dozedoff.aidUtil.app.Core;
+import com.github.dozedoff.aidUtil.app.Settings;
 import com.github.dozedoff.aidUtil.module.MaintenanceModule;
 import com.github.dozedoff.aidUtil.module.archiveIndexer.DatabaseWorker.OperationMode;
 import com.github.dozedoff.commonj.file.FileInfo;
 import com.github.dozedoff.commonj.file.FileWalker;
 
 public class ModuleArchiveIndexer extends MaintenanceModule {
-	static final String APP_PATH_KEY = "7zipAppPath";
-	
 	private ArchiveUnpacker unpacker;
 	private FileHasher hasher;
 	private DatabaseHandler dbHandler;
@@ -89,23 +86,20 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 
 	@Override
 	public void start() {
-		Properties aidUtilSettings = new Properties();
 		LinkedBlockingQueue<ArchiveFile> inputQueue, outputQueue;
 		Path tempFolder, appPath;
-		
+
 		try {
-			aidUtilSettings.load(Core.class.getResourceAsStream("aidUtil.properties"));
 			info("Searching for archives...");
 			foundArchives = ArchiveFinder.find(Paths.get(getPath()));
 		} catch (IOException e) {
-			// program
-			error("Failed to load aidUtil.properties: " + e.getMessage());
+			error("Failed to find archives " + e.getMessage());
 			return;
 		}
 		
 		info("Found " + foundArchives.size() + " archives.");
 		
-		appPath = Paths.get((String)aidUtilSettings.get(APP_PATH_KEY));
+		appPath = Settings.getInstance().getAppPath7zip();
 		unpacker = new ArchiveUnpacker(appPath);
 		
 		tempFolder = Paths.get(tempPathField.getText());
