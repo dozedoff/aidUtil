@@ -307,12 +307,12 @@ public class ModuleManageFiles extends MaintenanceModule {
 	class ImageVisitor extends SimpleFileVisitor<Path>{
 		final String[] ignoredDir = {BLACKLISTED_DIR,DNW_DIR, "$RECYCLE.BIN", "System Volume Information"};
 		final ArrayList<Path> ignoredPaths = new ArrayList<>(ignoredDir.length);
-		final ArrayList<String> indexed;
+		final ArrayList<Path> indexed;
 		
 		ImageFilter imgFilter = new ImageFilter();
 		boolean skip = false;
 		
-		public ImageVisitor(ArrayList<String> indexed){
+		public ImageVisitor(ArrayList<Path> indexed){
 			this.indexed = indexed;
 			
 			for(String s : ignoredDir){
@@ -357,7 +357,8 @@ public class ModuleManageFiles extends MaintenanceModule {
 
 			if(! filename.startsWith(BLACKLISTED_TAG) && imgFilter.accept(null, filename)){
 				if(skip){
-					if(Collections.binarySearch(indexed, FileUtil.removeDriveLetter(file).toString().toLowerCase()) >= 0){
+					
+					if(Collections.binarySearch(indexed, FileUtil.removeDriveLetter(file)) >= 0){
 						statSkipped++;
 						return FileVisitResult.CONTINUE;
 					}
@@ -412,23 +413,23 @@ public class ModuleManageFiles extends MaintenanceModule {
 		AidDAO sql = new AidDAO(getConnectionPool());
 		StopWatch swPrune = new StopWatch();
 		
-		ArrayList<String> index = loadIndexedFiles(locationTag);
+		ArrayList<Path> index = loadIndexedFiles(locationTag);
 		
 		swPrune.start();
 		info("Pruning index...");
 		setStatus("Pruning index...");
 		progressBar.setMaximum(index.size());
 		
-		for(String s : index){
+		for(Path relativePath : index){
 			if(stop){
 				break;
 			}
 			
-			Path path = Paths.get(drive).resolve(s);
+			Path path = Paths.get(drive).resolve(relativePath);
 			
 			if(! Files.exists(path)){
-				sql.deleteIndexByPath(s);
-				sql.deleteDuplicateByPath(s);
+				sql.deleteIndexByPath(relativePath);
+				sql.deleteDuplicateByPath(relativePath);
 				pruned++;
 			}
 			
@@ -439,21 +440,28 @@ public class ModuleManageFiles extends MaintenanceModule {
 		info("Pruned " + pruned + " entries from the index in " + swPrune.getTime());
 	}
 	
-	private ArrayList<String> loadIndexedFiles(String location){
+	private ArrayList<Path> loadIndexedFiles(String location){
 			ArrayList<String> indexed;
+			ArrayList<Path> indexedPaths;
 			StopWatch swLoad = new StopWatch();
 			
 			swLoad.start();
 			info("Fetching file list from DB...");
 			indexed = new AidDAO(getConnectionPool()).getLocationFilelist(location);
-			info("Loaded "+indexed.size()+" index entries from the DB");
+			indexedPaths = new ArrayList<>(indexed.size());
+			
+			for(String index : indexed){
+				indexedPaths.add(Paths.get(index));
+			}
+			
+			info("Loaded "+indexedPaths.size()+" index entries from the DB");
 			info("Performing sort...");
-			Collections.sort(indexed); // sort the list so we can use binary search
+			Collections.sort(indexedPaths); // sort the list so we can use binary search
 			swLoad.stop();
 			
 			info("Indexed list ready...(" + swLoad.getTime() +")");
 			
-			return indexed;
+			return indexedPaths;
 	}
 	
 	class DataProducer extends Thread {
