@@ -21,6 +21,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
+import java.util.List;
 
 public class LocationTag {
 	public final static String LOCATION_TAG_PREFIX = "LOCATIONTAG-";
@@ -32,19 +33,32 @@ public class LocationTag {
 			return tags;
 		}
 		
-		File[] rootFiles = path.getRoot().toFile().listFiles();
+		File[] dirFiles = path.toFile().listFiles();
+		tags = searchListForTags(dirFiles);
 		
-		if(rootFiles == null){
+		if(!tags.isEmpty()){
 			return tags;
 		}
 		
-		for(File file : rootFiles){
-			if(file.getName().startsWith(LOCATION_TAG_PREFIX)){
-				tags.add(file.getName().substring(LOCATION_TAG_PREFIX.length()));
-			}
-		}
+		File[] rootFiles = path.getRoot().toFile().listFiles();
+		tags = searchListForTags(rootFiles);
 		
 		return tags;
+	}
+	
+	private static LinkedList<String> searchListForTags(File[] filesToSearch) {
+		LinkedList<String> tagList = new LinkedList<>();
+		if (filesToSearch == null) {
+			return tagList;
+		}
+
+		for (File file : filesToSearch) {
+			if (file.getName().startsWith(LOCATION_TAG_PREFIX)) {
+				tagList.add(file.getName().substring(LOCATION_TAG_PREFIX.length()));
+			}
+		}
+
+		return tagList;
 	}
 	
 	public static LinkedList<String> findTags(String path){
