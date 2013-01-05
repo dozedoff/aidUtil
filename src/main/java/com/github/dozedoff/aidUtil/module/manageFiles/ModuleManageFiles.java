@@ -18,6 +18,12 @@
 package com.github.dozedoff.aidUtil.module.manageFiles;
 
 import io.AidDAO;
+import io.FileItem;
+import io.dao.IndexDAO;
+import io.tables.DirectoryPathRecord;
+import io.tables.FilePathRecord;
+import io.tables.IndexRecord;
+import io.tables.LocationRecord;
 
 import java.awt.Container;
 import java.awt.Dimension;
@@ -32,9 +38,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.swing.BorderFactory;
@@ -51,9 +59,14 @@ import org.slf4j.LoggerFactory;
 
 import com.github.dozedoff.aidUtil.module.MaintenanceModule;
 import com.github.dozedoff.commonj.file.BinaryFileReader;
+import com.github.dozedoff.commonj.file.FileInfo;
 import com.github.dozedoff.commonj.file.FileUtil;
 import com.github.dozedoff.commonj.hash.HashMaker;
 import com.github.dozedoff.commonj.time.StopWatch;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.stmt.PreparedQuery;
+import com.j256.ormlite.stmt.SelectArg;
 
 public class ModuleManageFiles extends MaintenanceModule {
 	final String BLACKLISTED_TAG = "WARNING-";
@@ -260,6 +273,9 @@ public class ModuleManageFiles extends MaintenanceModule {
 
 		progressBar.setMaximum(pendingFiles.size());
 		
+		createDirectoryEntries();
+		createFileEntries();
+		
 		for(Thread t : worker){
 			t = new DBWorker();
 			t.start();
@@ -287,6 +303,97 @@ public class ModuleManageFiles extends MaintenanceModule {
 		}catch(InterruptedException e){}
 		
 		etaTracker.interrupt(); // don't need this anymore since we are finished
+	}
+
+	private void createFileEntries() {
+	logger.info("Creating filename list...");
+		
+		final LinkedList<Path> filenames = new LinkedList<>();
+		
+		for(Path path : pendingFiles){
+			Path filename = path.getFileName();
+			if(filename != null){
+				// TODO possible performance issue 
+				if(!filenames.contains(filename)){
+					filenames.add(filename);
+				}
+			}
+		}
+		
+		try {
+			final Dao<FilePathRecord, Integer> fileDao = DaoManager.createDao(getConnectionPool().getConnectionSource(), FilePathRecord.class);
+			int count = fileDao.callBatchTasks(new Callable<Integer>() {
+			    public Integer call() throws Exception {
+			    	int fileCreateCounter = 0;
+			    	SelectArg filenamePath = new SelectArg();
+			    	PreparedQuery<FilePathRecord> getDirPrep = fileDao.queryBuilder().where().eq("filename", filenamePath).prepare();
+			        for (Path filename : filenames) {
+			            try{
+			            	filenamePath.setValue(filename);
+			            	FilePathRecord filenameRecord = fileDao.queryForFirst(getDirPrep);
+			            	if(filenameRecord == null){
+			            		filenameRecord = new FilePathRecord();
+			            		filenameRecord.setFilename(filename.toString());
+			            		fileDao.create(filenameRecord);
+			            		fileCreateCounter++;
+			            	}
+			            }catch(SQLException e){
+			            	logger.warn("Failed to create filename entry", e);
+			            }
+			        }
+					return fileCreateCounter;
+			    }
+			});
+			logger.info("Created {} filename entries", count);
+		} catch (Exception e) {
+			logger.error("Batch filename create failed", e);
+		}
+		
+	}
+
+	private void createDirectoryEntries() {
+		logger.info("Creating directory list...");
+		
+		final LinkedList<Path> directories = new LinkedList<>();
+		
+		for(Path path : pendingFiles){
+			Path parent = path.getParent();
+			if(parent != null){
+				// TODO possible performance issue 
+				if(!directories.contains(parent)){
+					directories.add(parent);
+				}
+			}
+		}
+		
+		try {
+			final Dao<DirectoryPathRecord, Integer> dirDao = DaoManager.createDao(getConnectionPool().getConnectionSource(), DirectoryPathRecord.class);
+			int count = dirDao.callBatchTasks(new Callable<Integer>() {
+			    public Integer call() throws Exception {
+			    	int dirCreateCounter = 0;
+			    	SelectArg dirPath = new SelectArg();
+			    	PreparedQuery<DirectoryPathRecord> getDirPrep = dirDao.queryBuilder().where().eq("dirpath", dirPath).prepare();
+			        for (Path dir : directories) {
+			            try{
+			            	dirPath.setValue(dir);
+			            	DirectoryPathRecord directoryRecord = dirDao.queryForFirst(getDirPrep);
+			            	if(directoryRecord == null){
+			            		directoryRecord = new DirectoryPathRecord();
+			            		directoryRecord.setDirpath(dir.toString());
+			            		dirDao.create(directoryRecord);
+			            		dirCreateCounter++;
+			            	}
+			            }catch(SQLException e){
+			            	logger.warn("Failed to create directory entry", e);
+			            }
+			        }
+					return dirCreateCounter;
+			    }
+			});
+			logger.info("Created {} directory entries", count);
+		} catch (Exception e) {
+			logger.error("Batch directory create failed", e);
+		}
 	}
 
 	@Override
@@ -512,6 +619,8 @@ public class ModuleManageFiles extends MaintenanceModule {
 			boolean blc = blCheck.isSelected();
 			boolean index = indexCheck.isSelected();
 			boolean dnw = dnwCheck.isSelected();
+			BatchInserter batchInserter = new BatchInserter();
+			batchInserter.start();
 			
 			while((! isInterrupted()) && (producer.isAlive() || (! dataQueue.isEmpty()))){
 				String hash;
@@ -562,10 +671,10 @@ public class ModuleManageFiles extends MaintenanceModule {
 							// removed duplicate adding due to unreliable code
 							logger.info("Hash {} for {} found in db, ignoring file", hash, f);
 						}else{
-							if(! sql.addIndex(hash, f.toString(), f.length(), locationTag)){
-								logger.warn("Failed to add index for {} - {}", f, hash);
-								error("Failed to add index for " + f.toString() + " - " + hash);
-							}
+							FileInfo info = new FileInfo(fd.file);
+							info.setHash(hash);
+							info.setSize(fd.data.length);
+							batchInserter.add(info);
 						}
 					}
 				} catch (InterruptedException e) {
@@ -684,5 +793,92 @@ public class ModuleManageFiles extends MaintenanceModule {
 			return false;
 		}
 		
+	}
+	
+	class BatchInserter extends Thread {
+		boolean stop = false;
+		Dao<FilePathRecord, Integer> fileDao;
+		Dao<DirectoryPathRecord, Integer> dirDao;
+		IndexDAO indexdao;
+		LinkedBlockingQueue<FileInfo> queue = new LinkedBlockingQueue<>();
+		
+		public BatchInserter() {
+			try {
+				fileDao = DaoManager.createDao(getConnectionPool().getConnectionSource(), FilePathRecord.class);
+				dirDao = DaoManager.createDao(getConnectionPool().getConnectionSource(), DirectoryPathRecord.class);
+				indexdao = DaoManager.createDao(getConnectionPool().getConnectionSource(), IndexRecord.class);
+			} catch (SQLException e) {
+				logger.error("Failed to create DAOs", e);
+			}
+		}
+		
+		public void setStop(boolean stop) {
+			this.stop = stop;
+		}
+		
+		public void add(FileInfo file){
+			synchronized (queue) {
+				queue.add(file);
+				queue.notify();
+			}
+		}
+
+		@Override
+		public void run() {
+			LinkedList<FileInfo> work = new LinkedList<>();
+			while(!stop){
+				synchronized (queue) {
+					while(queue.isEmpty()){
+						try {
+							queue.wait();
+						} catch (InterruptedException e) {
+							interrupt();
+						}
+					}
+					
+					queue.drainTo(work);
+				}
+				
+				final LinkedList<IndexRecord> index = new LinkedList<>();
+				
+				
+				for(FileInfo fi : work){
+					Path directory = fi.getFilePath().getParent();
+					Path filename = fi.getFilePath().getFileName();
+					
+					try {
+						DirectoryPathRecord directoryPathRecord = dirDao.queryForEq("dirpath", directory.toString()).get(0);
+						FilePathRecord filePathRecord = fileDao.queryForEq("filename", filename.toString()).get(0);
+						IndexRecord indexRecord = new IndexRecord();
+						indexRecord.setDirectory(directoryPathRecord);
+						indexRecord.setFile(filePathRecord);
+						indexRecord.setId(fi.getHash());
+						indexRecord.setSize(fi.getSize());
+						LocationRecord loc = new LocationRecord();
+						loc.setLocation("UNKNOWN");
+						loc.setTag_id(1);
+						indexRecord.setLocation(loc);
+						index.add(indexRecord);
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				
+				try {
+					indexdao.callBatchTasks(new Callable<Void>() {
+					    public Void call() throws Exception {
+					        for (IndexRecord ir : index) {
+					            indexdao.createIfNotExists(ir);
+					        }
+							return null;
+					    }
+					});
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 }
