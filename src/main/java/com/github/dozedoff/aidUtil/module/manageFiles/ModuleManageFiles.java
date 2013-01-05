@@ -72,8 +72,6 @@ public class ModuleManageFiles extends MaintenanceModule {
 	Thread worker[] = new Thread[WORKERS], producer, etaTracker;
 	StopWatch stopWatch = new StopWatch();
 	StopWatch dirWalkStopwatch = new StopWatch();
-	volatile int statHashed = 0;
-	int statSkipped = 0;
 	String locationTag = null;
 	String drive = null;
 	
@@ -99,6 +97,8 @@ public class ModuleManageFiles extends MaintenanceModule {
 	
 	// stats
 	int statBlocked, statDir;
+	volatile int statHashed = 0, statToIndex = 0;
+	int statSkipped = 0;
 	boolean stop = false;
 	String duration;
 	
@@ -178,6 +178,7 @@ public class ModuleManageFiles extends MaintenanceModule {
 	public void start() {
 		// reset stats
 		statHashed = 0;
+		statToIndex = 0;
 		statBlocked = 0;
 		statDir = 0;
 		statSkipped = 0;
@@ -357,13 +358,12 @@ public class ModuleManageFiles extends MaintenanceModule {
 
 			if(! filename.startsWith(BLACKLISTED_TAG) && imgFilter.accept(null, filename)){
 				if(skip){
-					
 					if(Collections.binarySearch(indexed, FileUtil.removeDriveLetter(file)) >= 0){
 						statSkipped++;
 						return FileVisitResult.CONTINUE;
 					}
 				}
-
+				statToIndex++;
 				pendingFiles.add(file);
 			}else if (filename.startsWith(BLACKLISTED_TAG)){
 				addBlacklisted(file.getParent());
@@ -563,6 +563,7 @@ public class ModuleManageFiles extends MaintenanceModule {
 							logger.info("Hash {} for {} found in db, ignoring file", hash, f);
 						}else{
 							if(! sql.addIndex(hash, f.toString(), f.length(), locationTag)){
+								logger.warn("Failed to add index for {} - {}", f, hash);
 								error("Failed to add index for " + f.toString() + " - " + hash);
 							}
 						}
@@ -630,7 +631,9 @@ public class ModuleManageFiles extends MaintenanceModule {
 		private void updateGUI() {
 			// display some stats while chewing through those files
 			setStatus("Time remaining:  " + duration);
+			progressBar.setMaximum(statToIndex);
 			progressBar.setValue(statHashed);
+			progressBar.setString(statHashed + " / " + statToIndex);
 		}
 
 		private void calcTime(){
