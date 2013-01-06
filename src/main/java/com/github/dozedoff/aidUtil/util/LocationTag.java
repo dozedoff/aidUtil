@@ -21,7 +21,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
-import java.util.List;
 
 public class LocationTag {
 	public final static String LOCATION_TAG_PREFIX = "LOCATIONTAG-";
@@ -33,15 +32,17 @@ public class LocationTag {
 			return tags;
 		}
 		
-		File[] dirFiles = path.toFile().listFiles();
-		tags = searchListForTags(dirFiles);
+		Path currentSearchPath = path;
 		
-		if(!tags.isEmpty()){
-			return tags;
+		while(currentSearchPath != currentSearchPath.getRoot()){
+			File[] dirFiles = currentSearchPath.toFile().listFiles();
+			tags = searchListForTags(dirFiles);
+			if(!tags.isEmpty()){
+				break;
+			}
+			
+			currentSearchPath = currentSearchPath.getParent();
 		}
-		
-		File[] rootFiles = path.getRoot().toFile().listFiles();
-		tags = searchListForTags(rootFiles);
 		
 		return tags;
 	}
