@@ -220,8 +220,12 @@ public class ModuleManageFiles extends MaintenanceModule {
 		info("Walking directories...");
 		dirWalkStopwatch.start();
 		try {
+			ArrayList<Path> indexEntries = new ArrayList<>();
+			if(indexSkip.isSelected()){
+				indexEntries = loadIndexedFiles(locationTag);
+			}
 			// go find those files...
-			Files.walkFileTree( f.toPath(), new ImageVisitor(loadIndexedFiles(locationTag)));
+			Files.walkFileTree( f.toPath(), new ImageVisitor(indexEntries));
 		} catch (IOException e) {
 			error("File walk failed");
 			e.printStackTrace();
