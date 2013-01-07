@@ -32,6 +32,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -445,17 +449,45 @@ public class ModuleManageFiles extends MaintenanceModule {
 	}
 	
 	private ArrayList<Path> loadIndexedFiles(String location){
-			ArrayList<String> indexed;
-			ArrayList<Path> indexedPaths;
+			ArrayList<Path> indexedPaths = new ArrayList<>();
 			StopWatch swLoad = new StopWatch();
 			
 			swLoad.start();
 			info("Fetching file list from DB...");
-			indexed = new AidDAO(getConnectionPool()).getLocationFilelist(location);
-			indexedPaths = new ArrayList<>(indexed.size());
 			
-			for(String index : indexed){
-				indexedPaths.add(Paths.get(index));
+			PreparedStatement prepStmt;
+			Connection con = null;
+			ResultSet rs = null;
+			try{
+				con = getConnectionPool().getConnection();
+				prepStmt = con.prepareStatement("SELECT `fullpath` FROM `indexview` WHERE location = ?");
+				
+				prepStmt.setString(1, location);
+				rs = prepStmt.executeQuery();
+				
+				while(rs.next()){
+					indexedPaths.add(Paths.get(rs.getString(1)));
+				}
+				
+				rs.close();
+			}catch(SQLException e){
+				logger.warn("Failed to load indexed entries", e);
+			}finally{
+				if(rs != null) {
+					try {
+						rs.close();
+					} catch (SQLException e) {
+						logger.warn("Failed to close ResultSet");
+					}
+				}
+				
+				if(con != null){
+					try {
+						con.close();
+					} catch (SQLException e) {
+						logger.warn("Failed to close databse connection", e);
+					}
+				}
 			}
 			
 			info("Loaded "+indexedPaths.size()+" index entries from the DB");
