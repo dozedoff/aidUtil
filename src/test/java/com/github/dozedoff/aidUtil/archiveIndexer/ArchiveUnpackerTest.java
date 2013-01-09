@@ -54,7 +54,7 @@ public class ArchiveUnpackerTest {
 		testArchive = Paths.get(ArchiveUnpackerTest.class.getResource("test.7z").toURI());
 		invalidArchive = Paths.get(ArchiveUnpackerTest.class.getResource("invalid.rar").toURI());
 		encryptedArchive = Paths.get(ArchiveUnpackerTest.class.getResource("encrypted.7z").toURI());
-		settings.load(Core.class.getResourceAsStream("aidUtil.properties"));
+		settings.load(ArchiveUnpackerTest.class.getResourceAsStream("aidUtil.properties")); //FIXME OS specific 
 	}
 	
 	@Before

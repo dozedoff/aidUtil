@@ -19,6 +19,7 @@ package com.github.dozedoff.aidUtil.module.archiveIndexer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -43,7 +44,8 @@ public class ArchiveUnpacker {
 
 		
 		// -aos: skip if dest exists -y: answer yes to all -o: output directory -r: recursive -Pfoobar: use password foobar
-		String command = sevenZipAppPath + "\\7z x \""+archive.toString()+"\" -aos -y -o\""+tempFolder.toString()+"\" -r -pfoobar";
+		String separator = FileSystems.getDefault().getSeparator();
+		String command = sevenZipAppPath + separator +"7z x \""+archive.toString()+"\" -aos -y -o\""+tempFolder.toString()+"\" -r -pfoobar";
 		
 		Process process = Runtime.getRuntime().exec(command);
 		ProcessWatchDog watchDog =  new ProcessWatchDog(command, process, TIMEOUT);
