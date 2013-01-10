@@ -31,6 +31,9 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.miginfocom.swing.MigLayout;
 
 import com.github.dozedoff.aidUtil.app.Settings;
@@ -50,6 +53,8 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 	ButtonGroup modeGroup;
 	
 	LinkedList<Path> foundArchives;
+	
+	Logger logger = LoggerFactory.getLogger(ModuleArchiveIndexer.class);
 
 	/**
 	 * @wbp.parser.entryPoint
@@ -132,6 +137,7 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 			info("Unpacking " + archive.getFileName().toString());
 			unpacker.unpack(archive, tempFolder);
 		} catch (Exception e) {
+			logger.warn("Failed to unpack Archive", e);
 			error("Failed to unpack archive: " + e.getMessage());
 		}
 	}

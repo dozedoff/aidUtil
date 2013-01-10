@@ -23,11 +23,16 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.dozedoff.commonj.io.StreamGobbler;
 import com.github.dozedoff.commonj.thread.ProcessWatchDog;
 public class ArchiveUnpacker {
 	private final Path sevenZipAppPath;
 	private final long TIMEOUT = 3 * 60 * 1000;
+	
+	private Logger logger = LoggerFactory.getLogger(ArchiveUnpacker.class);
 	
 	public ArchiveUnpacker(Path sevenZipAppPath) {
 		this.sevenZipAppPath = sevenZipAppPath;
@@ -46,6 +51,7 @@ public class ArchiveUnpacker {
 		// -aos: skip if dest exists -y: answer yes to all -o: output directory -r: recursive -Pfoobar: use password foobar
 		String separator = FileSystems.getDefault().getSeparator();
 		String command = sevenZipAppPath + separator +"7z x \""+archive.toString()+"\" -aos -y -o\""+tempFolder.toString()+"\" -r -pfoobar";
+		logger.info("Unpacking archive with command {}", sevenZipAppPath);
 		
 		Process process = Runtime.getRuntime().exec(command);
 		ProcessWatchDog watchDog =  new ProcessWatchDog(command, process, TIMEOUT);
@@ -72,6 +78,8 @@ public class ArchiveUnpacker {
 				throw new UnpackException(UnpackException.INVALID_PASSWORD, archive);
 			}
 			
+			logger.debug("7z output stream {}",sgo.getBuffer());
+			logger.debug("7z error stream {}",sge.getBuffer());
 			throw new UnpackException(process.exitValue(), archive);
 		}
 	}
