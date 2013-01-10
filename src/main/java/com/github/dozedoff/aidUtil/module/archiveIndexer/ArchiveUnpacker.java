@@ -40,10 +40,12 @@ public class ArchiveUnpacker {
 
 	public  void unpack(Path archive, Path tempFolder) throws IOException, UnpackException{
 		if(! Files.exists(archive)){
+			logger.warn("Could not find archive {}", archive);
 			throw new FileNotFoundException("Source file not Found");
 		}
 
 		if(! Files.exists(tempFolder)){
+			logger.warn("Could not find unpack destination folder {}", tempFolder);
 			throw new FileNotFoundException("Destination folder not Found");
 		}
 
@@ -82,5 +84,7 @@ public class ArchiveUnpacker {
 			logger.debug("7z error stream {}",sge.getBuffer());
 			throw new UnpackException(process.exitValue(), archive);
 		}
+		
+		logger.info("Unpacked archive {}", archive);
 	}
 }
