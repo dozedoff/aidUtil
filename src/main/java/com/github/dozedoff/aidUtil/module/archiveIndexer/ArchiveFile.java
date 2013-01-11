@@ -40,4 +40,22 @@ public class ArchiveFile extends FileInfo{
 	public FileInfo getFileInfo() {
 		return this;
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof ArchiveFile)){
+			return false;
+		}
+		
+		ArchiveFile arch = (ArchiveFile)obj;
+		return isSameArchive(arch) && isSamePath(arch);
+	}
+	
+	private boolean isSameArchive(ArchiveFile arch){
+		return arch.getArchivePath() == this.getArchivePath();
+	}
+	
+	private boolean isSamePath(ArchiveFile arch){
+		return arch.getFilePath() == this.getFilePath();
+	}
 }

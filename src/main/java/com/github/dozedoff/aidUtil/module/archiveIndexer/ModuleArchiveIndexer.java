@@ -167,7 +167,9 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 			for(Path file : images){
 				FileInfo info = new FileInfo(file);
 				ArchiveFile archiveFile = new ArchiveFile(info, archive);
-				inputQueue.add(archiveFile);
+				if(!inputQueue.contains(archiveFile)){
+					inputQueue.add(archiveFile);
+				}
 			}
 	}
 	
