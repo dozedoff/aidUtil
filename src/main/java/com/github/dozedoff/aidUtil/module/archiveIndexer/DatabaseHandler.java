@@ -32,18 +32,18 @@ public class DatabaseHandler {
 	}
 
 	public void addIndex(FileInfo fileInfo){
-		String fileHash = fileInfo.getHash();
+//		String fileHash = fileInfo.getHash();
 		
-		if(! sql.isHashed(fileHash)){
+//		if(! sql.isHashed(fileHash)){
 			sql.addIndex(fileInfo, ARCHIVE_LOCATION_TAG);
 			return;
-		}
-		
-		if(isArchived(fileHash)){
-			sql.addDuplicate(fileHash, fileInfo.getFilePath().toString(), fileInfo.getSize(), ARCHIVE_LOCATION_TAG);
-		}else{
-			moveAndInsertIndex(fileInfo);
-		}
+//		}
+		//FIXME duplicate insert code disabled due to faults in logic
+//		if(isArchived(fileHash)){
+//			sql.addDuplicate(fileHash, fileInfo.getFilePath().toString(), fileInfo.getSize(), ARCHIVE_LOCATION_TAG);
+//		}else{
+//			moveAndInsertIndex(fileInfo);
+//		}
 	}
 	
 	private boolean isArchived(String fileHash){
