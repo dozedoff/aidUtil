@@ -123,8 +123,9 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 		
 		info("Starting to index archives...");
 		logger.info("Starting to index archives...");
-		
+		int counter = 0;
 		for(Path archive : foundArchives){
+			setStatus(counter + "/" + foundArchives + " - " + inputQueue.size());
 			unpackArchive(archive, tempFolder);
 			images = findImages(tempFolder);
 			addFilesToQueue(inputQueue, archive, images);
