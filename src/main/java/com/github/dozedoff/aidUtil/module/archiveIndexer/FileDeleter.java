@@ -23,7 +23,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileDeleter {
 	public static void deleteAll(Path directory) throws IOException{
@@ -32,7 +34,7 @@ public class FileDeleter {
 }
 
 class DeleteVisitor extends SimpleFileVisitor<Path> {
-	private static final Logger logger = Logger.getLogger(DeleteVisitor.class.getName());
+	Logger logger = LoggerFactory.getLogger(FileDeleter.class);
 	Path startingDirectory;
 
 	public DeleteVisitor(Path startingDirectory) {
@@ -50,7 +52,7 @@ class DeleteVisitor extends SimpleFileVisitor<Path> {
 		if(dir.equals(startingDirectory)){
 			return FileVisitResult.CONTINUE;
 		}
-		
+		logger.info("Deleting directory {}", dir);
 		delete(dir);
 		return FileVisitResult.CONTINUE;
 	}
@@ -59,7 +61,7 @@ class DeleteVisitor extends SimpleFileVisitor<Path> {
 		try {
 			Files.deleteIfExists(path);
 		} catch (IOException e) {
-			logger.warning("Unable to delete file or directory " + e.getMessage());
+			logger.warn("Unable to delete file or directory {}", path, e);
 		}
 	}
 }

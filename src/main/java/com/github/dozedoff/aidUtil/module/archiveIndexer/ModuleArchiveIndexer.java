@@ -96,14 +96,16 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 
 		try {
 			info("Searching for archives...");
+			logger.info("Searching for archives...");
 			foundArchives = ArchiveFinder.find(Paths.get(getPath()));
 		} catch (IOException e) {
+			logger.error("Failed to find archives in {}", getPath(), e);
 			error("Failed to find archives " + e.getMessage());
 			return;
 		}
 		
 		info("Found " + foundArchives.size() + " archives.");
-		
+		logger.info("Found {} archives", foundArchives.size());
 		appPath = Settings.getInstance().getAppPath7zip();
 		unpacker = new ArchiveUnpacker(appPath);
 		
@@ -114,12 +116,13 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 		hasher = new FileHasher(inputQueue, outputQueue);
 		dbHandler = new DatabaseHandler(getConnectionPool());
 		dbWorker = new DatabaseWorker(dbHandler, outputQueue, new PathRewriter(tempFolder), getOpMode());
-		
+		logger.info("Operation mode is {}", getOpMode());
 		startThreads();
 		
 		LinkedList<Path> images;
 		
 		info("Starting to index archives...");
+		logger.info("Starting to index archives...");
 		
 		for(Path archive : foundArchives){
 			unpackArchive(archive, tempFolder);
@@ -129,15 +132,17 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 			deleteFilesInTempDir(tempFolder);
 		}
 		
+		logger.info("Finished indexing, {} archives processed", foundArchives.size());
 		info("Finished indexing, " + foundArchives.size() + " archives processed");
 	}
 	
 	private void unpackArchive(Path archive, Path tempFolder) {
 		try {
 			info("Unpacking " + archive.getFileName().toString());
+			logger.info("Unpaking archive {} to {}", archive, tempFolder);
 			unpacker.unpack(archive, tempFolder);
 		} catch (Exception e) {
-			logger.warn("Failed to unpack Archive", e);
+			logger.warn("Failed to unpack Archive", archive, e);
 			error("Failed to unpack archive: " + e.getMessage());
 		}
 	}
@@ -147,7 +152,9 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 		
 		try {
 			foundfiles = FileWalker.getAllImages(directory);
+			logger.info("Found {} files in directory {}", foundfiles.size(), directory);
 		} catch (IOException e) {
+			logger.warn("Failed to find images in directory {}", directory, e);
 			error("Failed to find images: " + e.getMessage());
 		}
 		
@@ -155,6 +162,7 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 	}
 	
 	private void addFilesToQueue(LinkedBlockingQueue<ArchiveFile> inputQueue, Path archive, List<Path> images) {
+		logger.info("Adding {} images to queue for archive {}", images.size(), archive);
 			for(Path file : images){
 				FileInfo info = new FileInfo(file);
 				ArchiveFile archiveFile = new ArchiveFile(info, archive);
@@ -186,6 +194,7 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 		try {
 			FileDeleter.deleteAll(path);
 		} catch (IOException e) {
+			logger.warn("Failed to clear directory {}", path, e);
 			error("Failed to clear temp directory: " + e.getMessage());
 		}
 	}
@@ -196,6 +205,7 @@ public class ModuleArchiveIndexer extends MaintenanceModule {
 		} catch (InterruptedException e) {
 			
 		} catch (IOException e) {
+			logger.warn("Failed to hash files", e );
 			error("Failed to hash file: " + e.getMessage());
 		}
 	}
